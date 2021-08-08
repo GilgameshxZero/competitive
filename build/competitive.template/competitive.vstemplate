@@ -1,0 +1,20 @@
+<VSTemplate Version="3.0.0"
+  xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Project">
+  <TemplateData>
+    <Name>competitive</Name>
+    <Description>C++ project for coding competitions.</Description>
+    <Icon>competitive.ico</Icon>
+    <ProjectType>VC</ProjectType>
+    <SortOrder>0</SortOrder>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>competitive</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <LocationField>Enabled</LocationField>
+    <EnableLocationBrowseButton>true</EnableLocationBrowseButton>
+  </TemplateData>
+  <TemplateContent>
+    <Project TargetFileName="competitive.vcxproj" File="competitive.vcxproj" ReplaceParameters="true">
+      <ProjectItem ReplaceParameters="false" TargetFileName="$projectname$.cpp">competitive.cpp</ProjectItem>
+    </Project>
+  </TemplateContent>
+</VSTemplate>
