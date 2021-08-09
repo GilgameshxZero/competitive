@@ -173,12 +173,18 @@ int main(int argc, char const *argv[]) {
 	// Redirect I/O to/from files if running locally.
 #ifndef ONLINE_JUDGE
 #pragma warning(disable : 6031)
-	std::freopen("b-in.txt", "r", stdin);
-	std::freopen("b-out.txt", "w", stdout);
+	std::freopen("a-in.txt", "r", stdin);
+	std::freopen("a-out.txt", "w", stdout);
 #pragma warning(default : 6031)
 #endif
 
-	cout << "Hello world!\n";
+	size_t T;
+	cin >> T;
+	while (T--) {
+		size_t P;
+		cin >> P;
+		cout << "2 " << P - 1 << '\n';
+	}
 
 	return 0;
 }

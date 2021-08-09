@@ -178,7 +178,37 @@ int main(int argc, char const *argv[]) {
 #pragma warning(default : 6031)
 #endif
 
-	cout << "Hello world!\n";
+	size_t T;
+	cin >> T;
+
+	string enemy, gregor;
+	while (T--) {
+		size_t N;
+		cin >> N >> enemy >> gregor;
+
+		size_t ans = 0;
+		bool prevUsed = true;
+		for (size_t idx = 0; idx < N; idx++) {
+			if (!prevUsed && enemy[idx - 1] == '1' && gregor[idx] == '1') {
+				ans++;
+				gregor[idx] = '0';
+			}
+			
+			if (idx > 0 && gregor[idx - 1] == '1' && enemy[idx] == '1') {
+				ans++;
+				gregor[idx - 1] = '0';
+				prevUsed = true;
+			} else if (gregor[idx] == '1' && enemy[idx] == '0') {
+				ans++;
+				gregor[idx] = '0';
+				prevUsed = true;
+			} else {
+				prevUsed = false;
+			}
+		}
+
+		cout << ans << '\n';
+	}
 
 	return 0;
 }
