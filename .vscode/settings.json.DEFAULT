@@ -9,7 +9,7 @@
 	"files.eol": "\n",
 	"files.associations": {
 		/* Mirrors file association of settings.json. */
-		"settings.DEFAULT.json": "jsonc",
+		"settings.json.DEFAULT": "jsonc",
 		"*.vstemplate": "xml"
 	},
 

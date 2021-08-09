@@ -2,7 +2,7 @@
   xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Project">
   <TemplateData>
     <Name>competitive</Name>
-    <Description>C++ project for coding competitions.</Description>
+    <Description>C++ project template for coding competitions.</Description>
     <Icon>competitive.ico</Icon>
     <ProjectType>VC</ProjectType>
     <SortOrder>0</SortOrder>
@@ -13,8 +13,10 @@
     <EnableLocationBrowseButton>true</EnableLocationBrowseButton>
   </TemplateData>
   <TemplateContent>
-    <Project TargetFileName="competitive.vcxproj" File="competitive.vcxproj" ReplaceParameters="true">
-      <ProjectItem ReplaceParameters="false" TargetFileName="$projectname$.cpp">competitive.cpp</ProjectItem>
+    <Project TargetFileName="$projectname$.vcxproj" File="competitive.vcxproj" ReplaceParameters="true">
+      <ProjectItem ReplaceParameters="true" TargetFileName="$projectname$.cpp">competitive.cpp</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="$projectname$-in.txt">competitive-in.txt</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="$projectname$-out.txt">competitive-out.txt</ProjectItem>
     </Project>
   </TemplateContent>
 </VSTemplate>

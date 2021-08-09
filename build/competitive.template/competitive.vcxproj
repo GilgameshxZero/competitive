@@ -16,6 +16,11 @@
     <ClCompile Include="$safeprojectname$.cpp" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Text Include="$safeprojectname$-in.txt" />
+    <Text Include="$safeprojectname$-out.txt" />
+  </ItemGroup>
+
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
