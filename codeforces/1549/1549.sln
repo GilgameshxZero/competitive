@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "a", "a\a.vcxproj", "{A4D5BE
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "b", "b\b.vcxproj", "{8BAF54AA-DE04-471F-8903-75677DA6AFA1}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "c", "c\c.vcxproj", "{7F385699-45D0-4498-8B89-51017665B984}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		debug|x64 = debug|x64
@@ -21,6 +23,10 @@ Global
 		{8BAF54AA-DE04-471F-8903-75677DA6AFA1}.debug|x64.Build.0 = debug|x64
 		{8BAF54AA-DE04-471F-8903-75677DA6AFA1}.release|x64.ActiveCfg = release|x64
 		{8BAF54AA-DE04-471F-8903-75677DA6AFA1}.release|x64.Build.0 = release|x64
+		{7F385699-45D0-4498-8B89-51017665B984}.debug|x64.ActiveCfg = debug|x64
+		{7F385699-45D0-4498-8B89-51017665B984}.debug|x64.Build.0 = debug|x64
+		{7F385699-45D0-4498-8B89-51017665B984}.release|x64.ActiveCfg = release|x64
+		{7F385699-45D0-4498-8B89-51017665B984}.release|x64.Build.0 = release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

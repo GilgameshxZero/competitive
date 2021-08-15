@@ -86,8 +86,8 @@ using ull = unsigned long long;
 int main(int argc, char const *argv[]) {
 	// Redirect I/O to/from files if running locally.
 #ifndef ONLINE_JUDGE
-	std::freopen("$safeprojectname$-in.txt", "r", stdin);
-	std::freopen("$safeprojectname$-out.txt", "w", stdout);
+	std::freopen("a-in.txt", "r", stdin);
+	std::freopen("a-out.txt", "w", stdout);
 #endif
 
 	// Untie C I/O from C++ I/O.
