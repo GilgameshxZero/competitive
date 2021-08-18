@@ -86,8 +86,8 @@ using ull = unsigned long long;
 int main(int argc, char const *argv[]) {
 	// Redirect I/O to/from files if running locally.
 #ifndef ONLINE_JUDGE
-	std::freopen("a-in.txt", "r", stdin);
-	std::freopen("a-out.txt", "w", stdout);
+	std::freopen("b-in.txt", "r", stdin);
+	std::freopen("b-out.txt", "w", stdout);
 #endif
 
 	// Untie C I/O from C++ I/O.
@@ -103,13 +103,30 @@ int main(int argc, char const *argv[]) {
 		ull N;
 		cin >> N;
 
-		ull an = (1ULL << 32) - 1;
-		while (N--) {
-			ull x;
-			cin >> x;
-			an &= x;
+		string s;
+		cin >> s;
+
+		auto calc = [](string s) -> pair<zu, string> {
+			zu c = 0;
+			for (zu idx = 1; idx < s.length(); idx++) {
+				if (s[idx] == '?') {
+					s[idx] = s[idx - 1] == 'R' ? 'B' : 'R';
+				}
+				c += s[idx] == s[idx - 1];
+			}
+			return {c, s};
+		};
+
+		if (s[0] == '?') {
+			s[0] = 'R';
+			auto r1 = calc(s);
+			s[0] = 'B';
+			auto r2 = calc(s);
+			cout << (r1.first > r2.first ? r2.second : r1.second) << '\n';
+		} else {
+			auto r = calc(s);
+			cout << r.second << '\n';
 		}
-		cout << an << '\n';
 	}
 
 	return 0;

@@ -83,11 +83,23 @@ using zu = std::size_t;
 using ll = long long;
 using ull = unsigned long long;
 
+ll dsuFind(vector<ll> &par, ll x) {
+	if (par[x] < 0) return x;
+	return par[x] = dsuFind(par, par[x]);
+}
+
+void dsuUnion(vector<ll> &par, ll x, ll y) {
+	ll i = dsuFind(par, x), j = dsuFind(par, y);
+
+	if (i == j) return;
+	par[i] += par[j], par[j] = i;
+}
+
 int main(int argc, char const *argv[]) {
 	// Redirect I/O to/from files if running locally.
 #ifndef ONLINE_JUDGE
-	std::freopen("a-in.txt", "r", stdin);
-	std::freopen("a-out.txt", "w", stdout);
+	std::freopen("d-in.txt", "r", stdin);
+	std::freopen("d-out.txt", "w", stdout);
 #endif
 
 	// Untie C I/O from C++ I/O.
@@ -97,19 +109,87 @@ int main(int argc, char const *argv[]) {
 	// problems!
 	std::cin.tie(nullptr);
 
-	ull T;
-	cin >> T;
-	while (T--) {
-		ull N;
-		cin >> N;
+	srand(time(nullptr));
 
-		ull an = (1ULL << 32) - 1;
-		while (N--) {
-			ull x;
-			cin >> x;
-			an &= x;
+	struct LLH {
+		zu operator()(ll const &k) const {
+			static auto r = rand(), r2 = rand(), r3 = rand(), r4 = rand();
+			return (k * r * r2 * r3 + r4) % 1000000009;
+		}	 // ? ;)
+	};
+
+	ll N, M1, M2;
+	cin >> N >> M1 >> M2;
+
+	vector<ll> p1(N, -1), p2(N, -1);
+	for (ll i = 0; i < M1; i++) {
+		ll x, y;
+		cin >> x >> y;
+		dsuUnion(p1, x - 1, y - 1);
+	}
+	for (ll i = 0; i < M2; i++) {
+		ll x, y;
+		cin >> x >> y;
+		dsuUnion(p2, x - 1, y - 1);
+	}
+
+	ll cc1 = N - M1, cc2 = N - M2, ans = min(cc1, cc2) - 1;
+	cout << ans << '\n';
+
+	unordered_map<ll, unordered_set<ll, LLH>, LLH> scc1, scc2;
+	for (ll i = 0; i < N; i++) {
+		ll j = dsuFind(p1, i);
+		if (scc1.find(j) == scc1.end()) {
+			scc1[j] = unordered_set<ll, LLH>();
 		}
-		cout << an << '\n';
+		scc1[j].insert(i);
+		j = dsuFind(p2, i);
+		if (scc2.find(j) == scc2.end()) {
+			scc2[j] = unordered_set<ll, LLH>();
+		}
+		scc2[j].insert(i);
+	}
+
+	while (scc1.size() > 1 && scc2.size() > 1) {
+		auto itP = scc1.end();
+		bool done = false;
+		do {
+			auto otherP = itP;
+			otherP++;
+			do {
+				auto it = itP->second.begin();
+				do {
+					auto other = otherP->second.begin();
+					do {
+						auto i = dsuFind(p2, *it), j = dsuFind(p2, *other);
+						if (i != j) {
+							dsuUnion(p1, *it, *other);
+							itP->second.merge(otherP->second);
+							scc1.erase(otherP->first);
+							dsuUnion(p2, *it, *other);
+							auto &ii = scc2[i], &jj = scc2[j];
+							ii.merge(jj);
+							scc2.erase(j);
+							cout << *it + 1 << ' ' << *other + 1 << '\n';
+							done = true;
+							break;
+						}
+					} while (++other != otherP->second.end());
+
+					if (done) {
+						break;
+					}
+				} while (++it != itP->second.end());
+
+				if (done) {
+					break;
+				}
+			} while (++otherP != scc1.end());
+
+			if (done) {
+				break;
+			}
+		} while (++itP != scc1.end());
 	}
 
 	return 0;

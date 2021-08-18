@@ -86,8 +86,8 @@ using ull = unsigned long long;
 int main(int argc, char const *argv[]) {
 	// Redirect I/O to/from files if running locally.
 #ifndef ONLINE_JUDGE
-	std::freopen("a-in.txt", "r", stdin);
-	std::freopen("a-out.txt", "w", stdout);
+	std::freopen("c-in.txt", "r", stdin);
+	std::freopen("c-out.txt", "w", stdout);
 #endif
 
 	// Untie C I/O from C++ I/O.
@@ -99,17 +99,46 @@ int main(int argc, char const *argv[]) {
 
 	ull T;
 	cin >> T;
+
+	vector<bool> p;
 	while (T--) {
 		ull N;
 		cin >> N;
 
-		ull an = (1ULL << 32) - 1;
+		p.clear();
+		zu trans = 0;
 		while (N--) {
 			ull x;
 			cin >> x;
-			an &= x;
+			p.push_back(x == 1);
+
+			if (p.size() > 1 && p.back() && !p[p.size() - 2]) {
+				trans = p.size() - 1;
+			}
 		}
-		cout << an << '\n';
+
+		N = p.size();
+		if (p[0]) {
+			cout << N + 1 << ' ';
+			for (ull idx = 1; idx <= N; idx++) {
+				cout << idx << ' ';
+			}
+			cout << '\n';
+		} else if (!p.back()) {
+			for (ull idx = 1; idx <= N; idx++) {
+				cout << idx << ' ';
+			}
+			cout << N + 1 << '\n';
+		} else {
+			for (ull idx = 1; idx <= trans; idx++) {
+				cout << idx << ' ';
+			}
+			cout << N + 1 << ' ';
+			for (ull idx = trans + 1; idx <= N; idx++) {
+				cout << idx << ' ';
+			}
+			cout << '\n';
+		}
 	}
 
 	return 0;
