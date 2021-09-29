@@ -8,8 +8,8 @@ BIN_DIR := $(ROOT_DIR)bin/
 PROJECT_NAME := $(PROJECT)
 PROJECT_SRC_DIR := $(ROOT_DIR)$(PROJECT_NAME)/
 
-PROJECT_SRCS := $(wildcard $(PROJECT_SRC_DIR)*.cpp)
-PROJECT_SRC_NAMES := $(basename $(notdir $(wildcard $(PROJECT_SRC_DIR)*.cpp)))
+PROJECT_SRCS := $(wildcard $(PROJECT_SRC_DIR)$(FILES).cpp)
+PROJECT_SRC_NAMES := $(basename $(notdir $(PROJECT_SRCS)))
 PROJECT_OBJS := $(addprefix $(OBJ_DIR)$(PROJECT_NAME)/, \
 	$(addsuffix .o, $(PROJECT_SRC_NAMES)))
 PROJECT_BIN := $(BIN_DIR)$(PROJECT_NAME)
@@ -25,13 +25,13 @@ LDLIBS_INSTRUMENT := -fsanitize=address,undefined,leak
 
 # Default to DEBUG builds. Check if RELEASE=1 is set.
 ifeq ($(RELEASE), 1)
-  CXXFLAGS := $(CXXFLAGS) $(CXXFLAGS_RELEASE)
+	CXXFLAGS := $(CXXFLAGS) $(CXXFLAGS_RELEASE)
 else
-  CXXFLAGS := $(CXXFLAGS) $(CXXFLAGS_DEBUG)
+	CXXFLAGS := $(CXXFLAGS) $(CXXFLAGS_DEBUG)
 endif
 
 ifeq ($(INSTRUMENT), 1)
-  CXXFLAGS := $(CXXFLAGS) $(CXXFLAGS_INSTRUMENT)
+	CXXFLAGS := $(CXXFLAGS) $(CXXFLAGS_INSTRUMENT)
 	LDLIBS := $(LDLIBS) $(LDLIBS_INSTRUMENT)
 endif
 
@@ -55,9 +55,7 @@ $(PROJECT_NAME): $(BIN_DIR)$$@
 # Run a single project whose name is specified by PROJECT.
 .PHONY: run
 run: $(PROJECT_NAME)
-	@cd $(PROJECT_SRC_DIR)
-	@$(BIN_DIR)$(PROJECT_NAME) $(ARGS)
-	@cd -
+	@cd $(BIN_DIR) && ./$(PROJECT_NAME) $(ARGS)
 
 # Delete intermediate files.
 .PHONY: clean
@@ -70,9 +68,7 @@ $(PROJECT_BIN): $(BIN_DIR)% : $(PROJECT_OBJS)
 	@mkdir -p $(@D)
 	$(CXX) $(PROJECT_OBJS) $(LDLIBS) -o $@
 
-# Compile rule. Stem % matches TEST_NAME/TEST_NAME, in which / is replaced \
-	with a space and the last word is extracted for the cpp file name.
-$(PROJECT_OBJS): $(OBJ_DIR)%.o : \
-	$(PROJECT_SRC_DIR)$$(lastword $$(subst /, ,$$*)).cpp
+# Compile rule. Stem % matchines source file name.
+$(PROJECT_OBJS): $(OBJ_DIR)%.o : $(ROOT_DIR)$$*.cpp
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) -c $< -o $@

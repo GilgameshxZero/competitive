@@ -33,15 +33,15 @@
 
 			"command": "make",
 			"args": [
-				"PROJECT=${relativeFileDirname}${pathSeparator}${fileBasenameNoExtension}"
+				"PROJECT=${relativeFileDirname}",
+				// ${fileBasenameNoExtension} for single-source configurations, * for multi-source projects.
+				"FILES=${fileBasenameNoExtension}"
 			],
 			"problemMatcher": ["$gcc"],
 
 			"windows": {
 				"command": "build",
-				"args": [
-					"${relativeFileDirname}${pathSeparator}${fileBasenameNoExtension}"
-				],
+				"args": ["${relativeFileDirname}", "${fileBasenameNoExtension}"],
 				"problemMatcher": ["$msCompile"]
 			}
 		},
@@ -57,7 +57,8 @@
 
 			"command": "make",
 			"args": [
-				"PROJECT=${relativeFileDirname}${pathSeparator}${fileBasenameNoExtension}",
+				"PROJECT=${relativeFileDirname}",
+				"FILES=${fileBasenameNoExtension}",
 				"RELEASE=1"
 			],
 			"problemMatcher": ["$gcc"],
@@ -65,8 +66,9 @@
 			"windows": {
 				"command": "build",
 				"args": [
-					"${relativeFileDirname}${pathSeparator}${fileBasenameNoExtension}",
-					"release"
+					"${relativeFileDirname}",
+					"${fileBasenameNoExtension}",
+					"RELEASE"
 				],
 				"problemMatcher": ["$msCompile"]
 			}

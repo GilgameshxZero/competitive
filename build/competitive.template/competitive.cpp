@@ -1,5 +1,4 @@
-// C++ template for coding competitions designed for C++11 support, primarily
-// targeting MSVC++17.
+// C++ template for coding competitions designed for C++11 support.
 
 // Disable security/deprecation warnings on MSVC++.
 #ifndef _CRT_SECURE_NO_WARNINGS

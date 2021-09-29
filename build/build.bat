@@ -17,7 +17,8 @@ IF NOT DEFINED VSCMD_VER (
 SETLOCAL ENABLEDELAYEDEXPANSION
 
 SET "PROJECT_NAME=%1"
-SET "BUILD_TYPE=%2"
+SET "PROJECT_FILES=%2"
+SET "BUILD_TYPE=%3"
 
 @REM Create relevant directories.
 IF NOT EXIST ..\bin\%PROJECT_NAME%\..\ (
@@ -30,7 +31,7 @@ IF NOT EXIST ..\obj\%PROJECT_NAME%\ (
 SET "COMPILE_OP_COMMON=/std:c++17 /D _CONSOLE /Fa..\obj\%PROJECT_NAME%\ /Fd..\obj\%PROJECT_NAME%.pdb /Fo..\obj\%PROJECT_NAME%\ /Fp..\obj\%PROJECT_NAME%.pch /fp:fast /MP /permissive- /Zc:wchar_t /Zc:forScope /Zc:inline /GS /W3 /WX- /wd4250 /sdl /diagnostics:column /Zf /EHsc /Gm- /nologo"
 SET "COMPILE_OP_DEBUG=/D _DEBUG /MDd /Od /RTC1 /JMC /ZI"
 SET "COMPILE_OP_RELEASE=/D NDEBUG /MT /O2 /Oi /GL /Gy /Zi"
-SET "COMPILE_FILES=..\%PROJECT_NAME%.cpp"
+SET "COMPILE_FILES=..\%PROJECT_NAME%\%PROJECT_FILES%.cpp"
 
 SET "LINK_OP_COMMON=/link /OUT:..\bin\%PROJECT_NAME%.exe /PDB:..\obj\%PROJECT_NAME%.pdb /ILK:..\obj\%PROJECT_NAME%.ilk /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /MANIFESTFILE:..\obj\%PROJECT_NAME%.exe.intermediate.manifest /LTCGOUT:..\obj\%PROJECT_NAME%.iobj /SUBSYSTEM:CONSOLE /NOLOGO"
 SET "LINK_OP_DEBUG=/DEBUG"
@@ -38,7 +39,7 @@ SET "LINK_OP_RELEASE=/INCREMENTAL:NO /OPT:ICF /OPT:REF /LTCG:incremental"
 SET "LINK_LIBRARIES="
 
 @REM Compile and link.
-IF "%BUILD_TYPE%"=="release" (
+IF "%BUILD_TYPE%"=="RELEASE" (
 	SET "COMPILE_OP=%COMPILE_OP_COMMON% %COMPILE_OP_RELEASE%"
 	SET "LINK_OP=%LINK_OP_COMMON% %LINK_OP_RELEASE%"
 ) ELSE (

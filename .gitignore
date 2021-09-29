@@ -8,3 +8,8 @@
 **.DS_Store
 **.stackdump
 **.user
+
+**-in.txt
+**-out.txt
+!build/competitive.template/competitive-in.txt
+!build/competitive.template/competitive-out.txt
