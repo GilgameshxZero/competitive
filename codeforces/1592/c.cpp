@@ -139,14 +139,13 @@ int main(int argc, char const *argv[]) {
 
 		ll k = 0, test = 0;
 		for (ll i = 0; i < trav.size(); i++) {
-			auto t = trav[i];
-			test ^= A[t];
-			if (i != trav.size() - 1 && test == cand) {
+			test ^= A[trav[i]];
+			if (test == cand) {
 				k++;
 				test = 0;
 			}
 		}
-		cout << (test == cand && k <= K - 1 && k > 0 ? "YES" : "NO") << '\n';
+		cout << (k <= K && k > 1 ? "YES" : "NO") << '\n';
 	}
 
 	return 0;
