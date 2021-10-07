@@ -82,14 +82,32 @@ using zu = std::size_t;
 using ll = long long;
 using ull = unsigned long long;
 
-void dfs(vector<ll> &trav, vector<set<ll>> &chs, ll cur, ll par) {
-	trav.push_back(cur);
+ll calc(vector<set<ll>> &chs, vector<ll> &A, vector<ll> &Aw, ll cur, ll par) {
+	Aw[cur] = A[cur];
 	for (auto &ch : chs[cur]) {
 		if (ch == par) {
 			continue;
 		}
-		dfs(trav, chs, ch, cur);
+		Aw[cur] ^= calc(chs, A, Aw, ch, cur);
 	}
+	return Aw[cur];
+}
+
+pair<ll, ll>
+dfs(vector<set<ll>> &chs, vector<ll> &Aw, ll cur, ll par, ll target) {
+	for (auto &ch : chs[cur]) {
+		if (ch == par) {
+			continue;
+		}
+		auto res = dfs(chs, Aw, ch, cur, target);
+		if (res.first != -1) {
+			return res;
+		}
+	}
+	if (Aw[cur] == target) {
+		return {cur, par};
+	}
+	return {-1, -1};
 }
 
 int main(int argc, char const *argv[]) {
@@ -124,28 +142,35 @@ int main(int argc, char const *argv[]) {
 			chs[y - 1].insert(x - 1);
 		}
 
-		vector<ll> trav;
-		dfs(trav, chs, 0, -1);
-
-		ll cand = 0;
-		for (auto &t : trav) {
-			cand ^= A[t];
+		ll total = 0;
+		for (auto &a : A) {
+			total ^= a;
 		}
-
-		if (cand == 0) {
+		if (total == 0) {
 			cout << "YES\n";
 			continue;
 		}
-
-		ll k = 0, test = 0;
-		for (ll i = 0; i < trav.size(); i++) {
-			test ^= A[trav[i]];
-			if (test == cand) {
-				k++;
-				test = 0;
-			}
+		if (K <= 2) {
+			cout << "NO\n";
+			continue;
 		}
-		cout << (k <= K && k > 1 ? "YES" : "NO") << '\n';
+
+		vector<ll> Aw(N);
+		calc(chs, A, Aw, 0, -1);
+		auto res = dfs(chs, Aw, 0, -1, total);
+		if (res.second == -1) {
+			cout << "NO\n";
+			continue;
+		}
+		chs[res.first].erase(res.second);
+		chs[res.second].erase(res.first);
+		calc(chs, A, Aw, 0, -1);
+		res = dfs(chs, Aw, 0, -1, total);
+		if (res.second == -1) {
+			cout << "NO\n";
+			continue;
+		}
+		cout << "YES\n";
 	}
 
 	return 0;
