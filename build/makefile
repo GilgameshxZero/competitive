@@ -42,7 +42,7 @@ PROJECT_BIN = $(BIN_DIR)$(BIN).exe
 PROJECT_BIN_DIR = $(BIN_DIR)$(BIN)\..^\
 
 COMPILER = cl /c
-COMPILER_FLAGS_INCLUDES = /I$(PROJECT_INCLUDE_DIR)
+COMPILER_FLAGS_INCLUDES =
 COMPILER_FLAGS_COMMON = $(COMPILER_FLAGS_INCLUDES) /std:c++17 /D _CONSOLE\
 	/Fd$(PROJECT_OBJ_DIR).pdb /Fo$(PROJECT_OBJ_DIR) /Fp$(PROJECT_OBJ_DIR).pch\
 	/fp:fast /MP /permissive- /Zc:wchar_t /Zc:forScope /Zc:inline /Zf\
@@ -80,7 +80,7 @@ LINKER_FLAGS = $(LINKER_FLAGS_COMMON) $(LINKER_FLAGS_DEBUG)
 # Real targets.
 # Default/build target only compiles and links, but does not run.
 _default: build
-build: $(PROJECT_VERSION_INCLUDE) $(PROJECT_BIN)
+build: $(PROJECT_BIN)
 # Build, but don't increment the versioning header.
 dist: $(PROJECT_BIN)
 # Build and run.
@@ -95,7 +95,6 @@ clean:
 # Define special macro to enable double-substitution.
 DBLSUB_DEP_SRC_DIR_TO_OBJ_DIR = $(**:..\=..\obj\)
 # First compile all outdated files (with /MP), then link everything together.
-# TODO: Dependencies are parsed incorrectly once PROJECT_INCLUDES is set.
 $(PROJECT_BIN): $(PROJECT_SRC_DIR)$(SOURCES)
 	@IF NOT EXIST $(PROJECT_BIN_DIR) MD $(PROJECT_BIN_DIR)
 	@IF NOT EXIST $(PROJECT_OBJ_DIR) MD $(PROJECT_OBJ_DIR)
