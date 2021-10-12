@@ -6,72 +6,58 @@
 			"type": "shell",
 			"label": "clean",
 			"options": { "cwd": "${workspaceFolder}/build" },
-			"presentation": {
-				"clear": true,
-				"reveal": "silent"
-			},
+			"presentation": { "clear": true, "reveal": "silent" },
 
 			"command": "make",
 			"args": ["clean"],
 
-			"windows": {
-				"command": "RMDIR",
-				"args": ["/Q", "/S", "..\\bin", "..\\obj"]
-			}
+			"windows": { "command": "nmake" }
+		},
+		{
+			"type": "shell",
+			"label": "create",
+			"options": { "cwd": "${workspaceFolder}/build" },
+			"presentation": { "clear": true, "reveal": "silent" },
+
+			"command": "cp",
+			"args": [
+				"template.cpp",
+				"${fileDirname}/problem.cpp"
+			]
 		},
 		{
 			/* Build the open file in debug mode. */
 			"type": "shell",
 			"label": "build-debug-x64",
 			"options": { "cwd": "${workspaceFolder}/build" },
-			"presentation": {
-				"clear": true
-			},
+			"presentation": { "clear": true },
 
 			/* Default build task. */
 			"group": { "kind": "build", "isDefault": true },
 
 			"command": "make",
-			"args": [
-				"PROJECT=${relativeFileDirname}",
-				// ${fileBasenameNoExtension} for single-source configurations, * for multi-source projects.
-				"FILES=${fileBasenameNoExtension}"
-			],
+			"args": ["PROJECT=${relativeFileDirname}", "SOURCES=${fileBasename}"],
 			"problemMatcher": ["$gcc"],
 
-			"windows": {
-				"command": "build",
-				"args": ["${relativeFileDirname}", "${fileBasenameNoExtension}"],
-				"problemMatcher": ["$msCompile"]
-			}
+			"windows": { "command": "nmake", "problemMatcher": ["$msCompile"] }
 		},
 		{
 			/* Build the open file in release mode. */
 			"type": "shell",
 			"label": "build-release-x64",
 			"options": { "cwd": "${workspaceFolder}/build" },
-			"presentation": {
-				"clear": true
-			},
+			"presentation": { "clear": true },
 			"group": "build",
 
 			"command": "make",
 			"args": [
 				"PROJECT=${relativeFileDirname}",
-				"FILES=${fileBasenameNoExtension}",
-				"RELEASE=1"
+				"SOURCES=${fileBasename}",
+				"BUILD=1"
 			],
 			"problemMatcher": ["$gcc"],
 
-			"windows": {
-				"command": "build",
-				"args": [
-					"${relativeFileDirname}",
-					"${fileBasenameNoExtension}",
-					"RELEASE"
-				],
-				"problemMatcher": ["$msCompile"]
-			}
+			"windows": { "command": "nmake", "problemMatcher": ["$msCompile"] }
 		}
 	]
 }

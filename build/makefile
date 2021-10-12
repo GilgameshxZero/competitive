@@ -1,74 +1,186 @@
-SHELL := /bin/bash
+# GNU make (gmake) & nmake shared makefile.
+# Conditional logic implemented with differing end-of-line comment syntax.
+# To enable multithreaded compilation, nmake compiles all files together with
+# /MP, while gmake compiles separately with -jN.
 
-# Directories relative paths.
+# Variables:
+# PROJECT: name of project; path to files from repository root.
+# SOURCES: * (default), or a list of filenames in the project directory.
+# BIN: name of output executable (default = PROJECT).
+# BUILD: 0 (default), 1, or 2, specifying the type of build.
+# ARGUMENTS: command-line arguments to pass to the executable to be run.
+
+# Targets:
+# build (default): compile & link.
+# run: compile, link, and run.
+# clean: remove intermediates directory.
+
+# Default target defined before any "fake" targets.
+__default: _default
+
+# ------------------------------------------------------------------------------
+ifdef MAKEDIR: # gmake: false; nmake: unused target
+!ifdef MAKEDIR # gmake: not seen; nmake: true
+# ------------------------------------------------------------------------------
+
+# nmake specific commands.
+# The directory structure here must be consistent with macro substitution
+# structure utilized later.
+ROOT_DIR = ..^\
+OBJ_DIR = $(ROOT_DIR)obj^\
+BIN_DIR = $(ROOT_DIR)bin^\
+PROJECT_OBJ_DIR = $(OBJ_DIR)$(PROJECT)^\
+PROJECT_SRC_DIR = $(ROOT_DIR)$(PROJECT)^\
+!IFNDEF SOURCES
+SOURCES = *.cpp
+!ENDIF
+!IFNDEF BIN
+# For the repository, executable filename is not the project name.
+BIN = $(PROJECT)
+!ENDIF
+PROJECT_BIN = $(BIN_DIR)$(BIN).exe
+PROJECT_BIN_DIR = $(BIN_DIR)$(BIN)\..^\
+
+COMPILER = cl /c
+COMPILER_FLAGS_INCLUDES = /I$(PROJECT_INCLUDE_DIR)
+COMPILER_FLAGS_COMMON = $(COMPILER_FLAGS_INCLUDES) /std:c++17 /D _CONSOLE\
+	/Fd$(PROJECT_OBJ_DIR).pdb /Fo$(PROJECT_OBJ_DIR) /Fp$(PROJECT_OBJ_DIR).pch\
+	/fp:fast /MP /permissive- /Zc:wchar_t /Zc:forScope /Zc:inline /Zf\
+	/GS /W3 /WX- /wd4250 /sdl /diagnostics:column /EHsc /Gm- /nologo
+COMPILER_FLAGS_DEBUG = /D _DEBUG /MDd /Od /RTC1 /JMC /ZI
+COMPILER_FLAGS_RELEASE = /D NDEBUG /MT /O2 /Oi /GL /Gy /Zi
+COMPILER_FLAGS_INSTRUMENT = $(COMPILER_FLAGS_DEBUG) /Fa$(PROJECT_OBJ_DIR)
+
+LINKER = link
+LINKER_FLAGS_LIBRARIES =
+LINKER_FLAGS_COMMON = $(LINKER_FLAGS_LIBRARIES) /OUT:$(PROJECT_BIN)\
+	/PDB:$(PROJECT_OBJ_DIR).pdb /ILK:$(PROJECT_OBJ_DIR).ilk\
+	/MANIFESTUAC:"level='asInvoker' uiAccess='false'"\
+	/MANIFESTFILE:$(PROJECT_OBJ_DIR).exe.intermediate.manifest\
+	/LTCGOUT:$(PROJECT_OBJ_DIR).iobj /SUBSYSTEM:CONSOLE /NOLOGO
+LINKER_FLAGS_DEBUG = /DEBUG
+LINKER_FLAGS_RELEASE = /INCREMENTAL:NO /OPT:ICF /OPT:REF /LTCG:incremental
+LINKER_FLAGS_INSTRUMENT = $(LINKER_FLAGS_DEBUG)
+
+# BUILD_TYPE can be either 0 (default; debug), 1 (release), or 2 (instrument).
+!IFNDEF BUILD
+BUILD = 0
+!ENDIF
+!IF $(BUILD) == 1
+COMPILER_FLAGS = $(COMPILER_FLAGS_COMMON) $(COMPILER_FLAGS_RELEASE)
+LINKER_FLAGS = $(LINKER_FLAGS_COMMON) $(LINKER_FLAGS_RELEASE)
+!ELSE IF $(BUILD) == 2
+COMPILER_FLAGS = $(COMPILER_FLAGS_COMMON) $(COMPILER_FLAGS_INSTRUMENT)
+LINKER_FLAGS = $(LINKER_FLAGS_COMMON) $(LINKER_FLAGS_INSTRUMENT)
+!ELSE
+COMPILER_FLAGS = $(COMPILER_FLAGS_COMMON) $(COMPILER_FLAGS_DEBUG)
+LINKER_FLAGS = $(LINKER_FLAGS_COMMON) $(LINKER_FLAGS_DEBUG)
+!ENDIF
+
+# Real targets.
+# Default/build target only compiles and links, but does not run.
+_default: build
+build: $(PROJECT_VERSION_INCLUDE) $(PROJECT_BIN)
+# Build, but don't increment the versioning header.
+dist: $(PROJECT_BIN)
+# Build and run.
+run: build
+	@CD $(BIN_DIR) && $(PROJECT_BIN) $(ARGUMENTS)
+# Clean target removes all intermediates.
+clean:
+	@IF EXIST $(BIN_DIR) RD /Q /S $(BIN_DIR)
+	@IF EXIST $(OBJ_DIR) RD /Q /S $(OBJ_DIR)
+
+# Build target.
+# Define special macro to enable double-substitution.
+DBLSUB_DEP_SRC_DIR_TO_OBJ_DIR = $(**:..\=..\obj\)
+# First compile all outdated files (with /MP), then link everything together.
+# TODO: Dependencies are parsed incorrectly once PROJECT_INCLUDES is set.
+$(PROJECT_BIN): $(PROJECT_SRC_DIR)$(SOURCES)
+	@IF NOT EXIST $(PROJECT_BIN_DIR) MD $(PROJECT_BIN_DIR)
+	@IF NOT EXIST $(PROJECT_OBJ_DIR) MD $(PROJECT_OBJ_DIR)
+	@$(COMPILER) $(COMPILER_FLAGS) $?
+	@ECHO $(PROJECT_BIN)
+	@$(LINKER) $(LINKER_FLAGS) $(DBLSUB_DEP_SRC_DIR_TO_OBJ_DIR:.cpp=.obj)
+
+# ------------------------------------------------------------------------------
+!else
+else
+# ------------------------------------------------------------------------------
+
+# GNU make (gmake) specific commands.
+# For usage of bash commands like `read`.
+SHELL := /bin/bash
 ROOT_DIR := ../
 OBJ_DIR := $(ROOT_DIR)obj/
 BIN_DIR := $(ROOT_DIR)bin/
+PROJECT_OBJ_DIR := $(OBJ_DIR)$(PROJECT)/
+PROJECT_SRC_DIR := $(ROOT_DIR)$(PROJECT)/
+SOURCES ?= *.cpp
+BIN ?= $(PROJECT)
+PROJECT_BIN := $(BIN_DIR)$(BIN)
+PROJECT_BIN_DIR := $(BIN_DIR)$(BIN)/../
 
-PROJECT_NAME := $(PROJECT)
-PROJECT_SRC_DIR := $(ROOT_DIR)$(PROJECT_NAME)/
+COMPILER ?= clang++
+COMPILER_FLAGS_INCLUDES :=
+COMPILER_FLAGS_COMMON := $(COMPILER_FLAGS_INCLUDES) -std=c++17 -m64 -pthread\
+	-Wall -Wextra -D_CONSOLE
+COMPILER_FLAGS_DEBUG := -D _DEBUG -g -O0
+COMPILER_FLAGS_RELEASE := -D NDEBUG -Ofast
+COMPILER_FLAGS_INSTRUMENT := $(COMPILER_FLAGS_DEBUG) /Fa$(PROJECT_OBJ_DIR)
 
-PROJECT_SRCS := $(wildcard $(PROJECT_SRC_DIR)$(FILES).cpp)
-PROJECT_SRC_NAMES := $(basename $(notdir $(PROJECT_SRCS)))
-PROJECT_OBJS := $(addprefix $(OBJ_DIR)$(PROJECT_NAME)/, \
-	$(addsuffix .o, $(PROJECT_SRC_NAMES)))
-PROJECT_BIN := $(BIN_DIR)$(PROJECT_NAME)
+LINKER := $(COMPILER)
+LINKER_FLAGS_LIBRARIES := -pthread -lresolv -lstdc++fs
+LINKER_FLAGS_COMMON := $(LINKER_FLAGS_LIBRARIES)
+LINKER_FLAGS_DEBUG :=
+LINKER_FLAGS_RELEASE :=
+LINKER_FLAGS_INSTRUMENT := $(LINKER_FLAGS_DEBUG)\
+	-fsanitize=address,undefined,leak
 
-# Flags for build. Debug by default.
-CXX ?= clang++
-CXXFLAGS := -std=c++17 -m64 -pthread -Wall -Wextra -D_CONSOLE
-CXXFLAGS_DEBUG := -D _DEBUG -g -O0
-CXXFLAGS_RELEASE := -D NDEBUG -Ofast
-CXXFLAGS_INSTRUMENT :=
-LDLIBS := -pthread -lresolv
-LDLIBS_INSTRUMENT := -fsanitize=address,undefined,leak
-
-# Default to DEBUG builds. Check if RELEASE=1 is set.
-ifeq ($(RELEASE), 1)
-	CXXFLAGS := $(CXXFLAGS) $(CXXFLAGS_RELEASE)
+BUILD ?= 0
+ifeq ($(BUILD), 1)
+	COMPILER_FLAGS = $(COMPILER_FLAGS_COMMON) $(COMPILER_FLAGS_RELEASE)
+	LINKER_FLAGS = $(LINKER_FLAGS_COMMON) $(LINKER_FLAGS_RELEASE)
+else ifeq ($(BUILD), 2)
+	COMPILER_FLAGS = $(COMPILER_FLAGS_COMMON) $(COMPILER_FLAGS_INSTRUMENT)
+	LINKER_FLAGS = $(LINKER_FLAGS_COMMON) $(LINKER_FLAGS_INSTRUMENT)
 else
-	CXXFLAGS := $(CXXFLAGS) $(CXXFLAGS_DEBUG)
+	COMPILER_FLAGS = $(COMPILER_FLAGS_COMMON) $(COMPILER_FLAGS_DEBUG)
+	LINKER_FLAGS = $(LINKER_FLAGS_COMMON) $(LINKER_FLAGS_DEBUG)
 endif
 
-ifeq ($(INSTRUMENT), 1)
-	CXXFLAGS := $(CXXFLAGS) $(CXXFLAGS_INSTRUMENT)
-	LDLIBS := $(LDLIBS) $(LDLIBS_INSTRUMENT)
-endif
-
-# -lstdc++fs is included by default on MacOS and cannot be specified on the \
-	command line.
-UNAME_S := $(shell uname -s)
-ifneq ($(UNAME_S), Darwin)
-	LDLIBS := $(LDLIBS) -lstdc++fs
-endif
-
-# Keep intermediate and output files.
-.SECONDARY: $(PROJECT_OBJS) $(PROJECT_BIN)
-
-# Mark .PHONY for rules to avoid compiling files named the same as rules.
-
-# Rules for single tests just redirect to test binaries.
-# Enable second expansion for some fancy pattern matching later.
+# Second expansion for stem matching syntax.
 .SECONDEXPANSION:
-$(PROJECT_NAME): $(BIN_DIR)$$@
+# Keep intermediate and output files.
+# Introduce list of project object intermediates parsed from the source
+# directory with SOURCES.
+PROJECT_OBJS := $(addprefix $(PROJECT_OBJ_DIR), $(addsuffix .o,\
+	$(basename $(notdir $(wildcard $(PROJECT_SRC_DIR)$(SOURCES))))))
+.SECONDARY: $(PROJECT_BIN) $(PROJECT_OBJS)
 
-# Run a single project whose name is specified by PROJECT.
-.PHONY: run
-run: $(PROJECT_NAME)
-	@cd $(BIN_DIR) && ./$(PROJECT_NAME) $(ARGS)
-
-# Delete intermediate files.
-.PHONY: clean
+# Ensure files with the same name as fake targets do not trigger.
+.PHONY: __default _default build dist run clean increment
+_default: build
+build: $(PROJECT_BIN)
+dist: $(PROJECT_BIN)
+run: build
+	@cd $(BIN_DIR) && ./$(PROJECT_BIN) $(ARGUMENTS)
 clean:
 	@rm -rf $(OBJ_DIR) $(BIN_DIR)
 
-# Static rules to nest one directory deep inside ../obj.
 # Link rule.
 $(PROJECT_BIN): $(BIN_DIR)% : $(PROJECT_OBJS)
 	@mkdir -p $(@D)
-	$(CXX) $(PROJECT_OBJS) $(LDLIBS) -o $@
+	@echo $@
+	@$(LINKER) $(PROJECT_OBJS) $(LINKER_FLAGS) -o $@
 
 # Compile rule. Stem % matchines source file name.
 $(PROJECT_OBJS): $(OBJ_DIR)%.o : $(ROOT_DIR)$$*.cpp
 	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	@echo $@
+	@$(COMPILER) $(COMPILER_FLAGS) -c $< -o $@
+
+# ------------------------------------------------------------------------------
+endif    # gmake: close condition; nmake: not seen
+!endif : # gmake: unused target; nmake close conditional
+# ------------------------------------------------------------------------------
