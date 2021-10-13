@@ -86,10 +86,12 @@ dist: $(PROJECT_BIN)
 # Build and run.
 run: build
 	@CD $(BIN_DIR) && $(PROJECT_BIN) $(ARGUMENTS)
-# Clean target removes all intermediates.
+# Clean target removes all intermediates, but remakes the in.txt file.
 clean:
 	@IF EXIST $(BIN_DIR) RD /Q /S $(BIN_DIR)
 	@IF EXIST $(OBJ_DIR) RD /Q /S $(OBJ_DIR)
+	@MD $(BIN_DIR)
+	@TYPE NUL > $(BIN_DIR)in.txt
 
 # Build target.
 # Define special macro to enable double-substitution.
@@ -164,8 +166,11 @@ build: $(PROJECT_BIN)
 dist: $(PROJECT_BIN)
 run: build
 	@cd $(BIN_DIR) && ./$(PROJECT_BIN) $(ARGUMENTS)
+# Clean, but recreate in.txt file.
 clean:
 	@rm -rf $(OBJ_DIR) $(BIN_DIR)
+	@mkdir -p $(BIN_DIR)
+	@touch $(BIN_DIR)in.txt
 
 # Link rule.
 $(PROJECT_BIN): $(BIN_DIR)% : $(PROJECT_OBJS)

@@ -20,10 +20,7 @@
 			"presentation": { "clear": true, "reveal": "silent" },
 
 			"command": "cp",
-			"args": [
-				"template.cpp",
-				"${fileDirname}/problem.cpp"
-			]
+			"args": ["template.cpp", "${fileDirname}/problem.cpp"]
 		},
 		{
 			/* Build the open file in debug mode. */
@@ -36,7 +33,11 @@
 			"group": { "kind": "build", "isDefault": true },
 
 			"command": "make",
-			"args": ["PROJECT=${relativeFileDirname}", "SOURCES=${fileBasename}"],
+			"args": [
+				"PROJECT=${relativeFileDirname}",
+				"SOURCES=${fileBasename}",
+				"BIN=${fileBasenameNoExtension}"
+			],
 			"problemMatcher": ["$gcc"],
 
 			"windows": { "command": "nmake", "problemMatcher": ["$msCompile"] }
@@ -53,6 +54,7 @@
 			"args": [
 				"PROJECT=${relativeFileDirname}",
 				"SOURCES=${fileBasename}",
+				"BIN=${fileBasenameNoExtension}",
 				"BUILD=1"
 			],
 			"problemMatcher": ["$gcc"],
