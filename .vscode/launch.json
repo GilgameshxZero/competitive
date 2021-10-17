@@ -15,7 +15,6 @@
 			"MIMode": "gdb",
 
 			"windows": { "type": "cppvsdbg" },
-
 			"osx": { "MIMode": "lldb" }
 		},
 		{
@@ -31,7 +30,6 @@
 			"MIMode": "gdb",
 
 			"windows": { "type": "cppvsdbg" },
-
 			"osx": { "MIMode": "lldb" }
 		}
 	]

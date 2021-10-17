@@ -3,33 +3,30 @@
 	"tasks": [
 		{
 			/* Remove the intermediates directory obj/ and the output directory bin/. */
-			"type": "shell",
 			"label": "clean",
+			"type": "shell",
 			"options": { "cwd": "${workspaceFolder}/build" },
 			"presentation": { "clear": true, "reveal": "silent" },
 
 			"command": "make",
 			"args": ["clean"],
-
 			"windows": { "command": "nmake" }
 		},
 		{
+			"label": "new",
 			"type": "shell",
-			"label": "create",
 			"options": { "cwd": "${workspaceFolder}/build" },
 			"presentation": { "clear": true, "reveal": "silent" },
 
 			"command": "cp",
-			"args": ["template.cpp", "${fileDirname}/problem.cpp"]
+			"args": ["template.cpp", "${fileDirname}/${input:new-name}.cpp"]
 		},
 		{
 			/* Build the open file in debug mode. */
-			"type": "shell",
 			"label": "build-debug-x64",
+			"type": "shell",
 			"options": { "cwd": "${workspaceFolder}/build" },
 			"presentation": { "clear": true },
-
-			/* Default build task. */
 			"group": { "kind": "build", "isDefault": true },
 
 			"command": "make",
@@ -39,13 +36,12 @@
 				"BIN=${fileBasenameNoExtension}"
 			],
 			"problemMatcher": ["$gcc"],
-
 			"windows": { "command": "nmake", "problemMatcher": ["$msCompile"] }
 		},
 		{
 			/* Build the open file in release mode. */
-			"type": "shell",
 			"label": "build-release-x64",
+			"type": "shell",
 			"options": { "cwd": "${workspaceFolder}/build" },
 			"presentation": { "clear": true },
 			"group": "build",
@@ -58,8 +54,15 @@
 				"BUILD=1"
 			],
 			"problemMatcher": ["$gcc"],
-
 			"windows": { "command": "nmake", "problemMatcher": ["$msCompile"] }
+		}
+	],
+	"inputs": [
+		{
+			"id": "new-name",
+			"description": "Name:",
+			"default": "a",
+			"type": "promptString"
 		}
 	]
 }
