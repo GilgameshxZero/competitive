@@ -89,8 +89,7 @@ using pr = std::pair<First, Second>;
 template <typename Type>
 using vr = std::vector<Type>;
 
-#define rf(X, F, T) \
-	for (ll X = F, _rfDir = (F < T) * 2 - 1; X != T; X += _rfDir)
+#define rf(X, F, T) for (ll X = F; X != T; X += (F < T) * 2 - 1)
 
 int main(int argc, char const *argv[]) {
 	// Redirect I/O to/from files if running locally.
@@ -109,6 +108,17 @@ int main(int argc, char const *argv[]) {
 	ll T;
 	cin >> T;
 	while (T--) {
+		ll X, Y;
+		cin >> X >> Y;
+
+		if (X == Y) {
+			cout << X << '\n';
+		} else if (X > Y) {
+			cout << X + Y << '\n';
+		} else {
+			ll Z = ((X + Y) / 2) % X;
+			cout << Y - Z << '\n';
+		}
 	}
 
 	return 0;

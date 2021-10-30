@@ -89,8 +89,18 @@ using pr = std::pair<First, Second>;
 template <typename Type>
 using vr = std::vector<Type>;
 
-#define rf(X, F, T) \
-	for (ll X = F, _rfDir = (F < T) * 2 - 1; X != T; X += _rfDir)
+#define rf(X, F, T) for (ll X = F; X != T; X += (F < T) * 2 - 1)
+
+ll gcd(ll X, ll Y) {
+	if (X == 0) {
+		return Y;
+	}
+	return gcd(Y % X, X);
+}
+
+ll lcm(ll X, ll Y) {
+	return X * Y / gcd(X, Y);
+}
 
 int main(int argc, char const *argv[]) {
 	// Redirect I/O to/from files if running locally.
@@ -106,9 +116,38 @@ int main(int argc, char const *argv[]) {
 	// problems!
 	std::cin.tie(nullptr);
 
+	vr<ll> lcms;
+	lcms.push_back(1);
+	lcms.push_back(1);
+	rf(i, 2, 500000) {
+		if (lcms.back() >= 1000000000) {
+			break;
+		}
+		lcms.push_back(lcm(lcms.back(), i));
+	}
+
 	ll T;
 	cin >> T;
 	while (T--) {
+		ll N;
+		cin >> N;
+
+		bool done = false;
+		rf(i, 0, N) {
+			ll A;
+			cin >> A;
+
+			if (!done && lcms.size() > i + 2) {
+				if (A % lcms[i + 2] == 0) {
+					cout << "NO\n";
+					done = true;
+				}
+			}
+		}
+
+		if (!done) {
+			cout << "YES\n";
+		}
 	}
 
 	return 0;
