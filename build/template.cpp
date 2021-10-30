@@ -84,6 +84,12 @@ using zu = std::size_t;
 using ll = long long;
 using ull = unsigned long long;
 using ld = long double;
+template <typename First, typename Second>
+using pr = std::pair<First, Second>;
+template <typename Type>
+using vr = std::vector<Type>;
+
+#define rf(X, L, R) for (ll X = L; X < R; X++)
 
 int main(int argc, char const *argv[]) {
 	// Redirect I/O to/from files if running locally.
@@ -92,7 +98,7 @@ int main(int argc, char const *argv[]) {
 	std::freopen("out.txt", "w", stdout);
 #endif
 
-	// Untie C I/O from C++ I/O.
+	// Untie C I/O from C++ I/O. Do not intersperse printf/scanf with cin/cout.
 	std::ios_base::sync_with_stdio(false);
 
 	// Untie std::cin. Remember to flush std::cout manually on interactive
