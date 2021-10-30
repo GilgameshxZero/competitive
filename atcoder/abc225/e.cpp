@@ -79,7 +79,6 @@ std::regex operator"" _re(char const *value, std::size_t) {
 // literals in std::literals.
 using namespace std;
 
-// Shorthand for common types.
 using zu = std::size_t;
 using ll = long long;
 using ull = unsigned long long;
@@ -99,10 +98,49 @@ int main(int argc, char const *argv[]) {
 	// problems!
 	std::cin.tie(nullptr);
 
-	ll T;
-	cin >> T;
-	while (T--) {
+	ll N;
+	cin >> N;
+
+	vector<pair<ll, ll>> crit, sv;
+	for (ll i = 0; i < N; i++) {
+		ll X, Y;
+		cin >> X >> Y;
+		crit.push_back({X - 1, Y});
+		crit.push_back({X, Y - 1});
+		sv.push_back({X, Y});
 	}
+	sort(
+		crit.begin(), crit.end(), [](pair<ll, ll> const &L, pair<ll, ll> const &R) {
+			static ld const EPS = 1e-12;
+			return (L.second + EPS) / (L.first + EPS) <
+				(R.second + EPS) / (R.first + EPS);
+		});
+
+	map<pair<ll, ll>, ll> cm;
+	ll cmx;
+	cm[crit[0]] = cmx = 0;
+	for (ll i = 1; i < crit.size(); i++) {
+		cm[crit[i]] = cmx = cmx +
+			(crit[i].first * crit[i - 1].second !=
+			 crit[i].second * crit[i - 1].first);
+	}
+
+	vector<pair<ll, ll>> sb;
+	for (ll i = 0; i < N; i++) {
+		sb.push_back(
+			{cm[{sv[i].first - 1, sv[i].second}],
+			 cm[{sv[i].first, sv[i].second - 1}]});
+	}
+	sort(sb.begin(), sb.end());
+
+	ll top = 0, ans = 0;
+	for (ll i = 0; i < sb.size(); i++) {
+		if (sb[i].second >= top) {
+			top = sb[i].first;
+			ans++;
+		}
+	}
+	cout << ans;
 
 	return 0;
 }

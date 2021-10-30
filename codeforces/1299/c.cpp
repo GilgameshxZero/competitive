@@ -16,7 +16,7 @@ namespace IO {
 
 	char number_buffer[100];
 	uint8_t lookup[100];
-//dfhidf
+	
 	void _update_input_buffer() {
 		input_len = fread(input_buffer, sizeof(char), BUFFER_SIZE, stdin);
 		input_pos = 0;

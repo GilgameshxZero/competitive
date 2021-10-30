@@ -11,7 +11,6 @@
 #include <cassert>
 #include <chrono>
 #include <cinttypes>
-#include <climits>
 #include <cmath>
 #include <condition_variable>
 #include <cstdio>
@@ -79,11 +78,9 @@ std::regex operator"" _re(char const *value, std::size_t) {
 // literals in std::literals.
 using namespace std;
 
-// Shorthand for common types.
 using zu = std::size_t;
 using ll = long long;
 using ull = unsigned long long;
-using ld = long double;
 
 int main(int argc, char const *argv[]) {
 	// Redirect I/O to/from files if running locally.
@@ -99,10 +96,9 @@ int main(int argc, char const *argv[]) {
 	// problems!
 	std::cin.tie(nullptr);
 
-	ll T;
-	cin >> T;
-	while (T--) {
-	}
+	ll N, X;
+	cin >> N >> X;
+	
 
 	return 0;
 }

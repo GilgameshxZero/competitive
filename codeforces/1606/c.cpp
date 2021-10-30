@@ -11,7 +11,6 @@
 #include <cassert>
 #include <chrono>
 #include <cinttypes>
-#include <climits>
 #include <cmath>
 #include <condition_variable>
 #include <cstdio>
@@ -79,11 +78,9 @@ std::regex operator"" _re(char const *value, std::size_t) {
 // literals in std::literals.
 using namespace std;
 
-// Shorthand for common types.
 using zu = std::size_t;
 using ll = long long;
 using ull = unsigned long long;
-using ld = long double;
 
 int main(int argc, char const *argv[]) {
 	// Redirect I/O to/from files if running locally.
@@ -99,9 +96,48 @@ int main(int argc, char const *argv[]) {
 	// problems!
 	std::cin.tie(nullptr);
 
+	vector<ll> tp(11);
+	tp[0] = 1;
+	for (ll i = 1; i < 11; i++) {
+		tp[i] = tp[i - 1] * 10;
+	}
+
 	ll T;
 	cin >> T;
 	while (T--) {
+		ll N, K;
+		cin >> N >> K;
+
+		ll left = K + 1;
+		vector<ll> A;
+		for (ll i = 0; i < N; i++) {
+			ll X;
+			cin >> X;
+			if (!A.empty()) {
+				left -= tp[X - A.back()] - 1;
+			}
+			A.push_back(X);
+		}
+
+		if (left <= 0) {
+			string s;
+			left = K + 1;
+			for (ll i = 1; i < A.size(); i++) {
+				if (left <= tp[A[i] - A[i - 1]] - 1) {
+					cout << left << s << '\n';
+					break;
+				} else {
+					s += string(A[i] - A[i - 1], '9');
+					left -= tp[A[i] - A[i - 1]] - 1;
+				}
+			}
+		} else {
+			cout << left;
+			for (ll i = 0; i < A.back(); i++) {
+				cout << 9;
+			}
+			cout << '\n';
+		}
 	}
 
 	return 0;

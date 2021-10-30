@@ -11,7 +11,6 @@
 #include <cassert>
 #include <chrono>
 #include <cinttypes>
-#include <climits>
 #include <cmath>
 #include <condition_variable>
 #include <cstdio>
@@ -79,11 +78,9 @@ std::regex operator"" _re(char const *value, std::size_t) {
 // literals in std::literals.
 using namespace std;
 
-// Shorthand for common types.
 using zu = std::size_t;
 using ll = long long;
 using ull = unsigned long long;
-using ld = long double;
 
 int main(int argc, char const *argv[]) {
 	// Redirect I/O to/from files if running locally.
@@ -99,9 +96,51 @@ int main(int argc, char const *argv[]) {
 	// problems!
 	std::cin.tie(nullptr);
 
-	ll T;
-	cin >> T;
-	while (T--) {
+	ll N, Q;
+	cin >> N >> Q;
+
+	vector<pair<ll, ll>> cars(N, {-1, -1});
+	queue<ll> q;
+	stack<ll> s;
+
+	for (ll i = 0; i < Q; i++) {
+		ll T, X, Y, Z;
+		cin >> T;
+		switch (T) {
+			case 1:
+				cin >> X >> Y;
+				cars[Y - 1].first = X - 1;
+				cars[X - 1].second = Y - 1;
+				break;
+			case 2:
+				cin >> X >> Y;
+				cars[Y - 1].first = -1;
+				cars[X - 1].second = -1;
+				break;
+			case 3:
+				cin >> X;
+				Z = cars[X - 1].first;
+				while (Z != -1) {
+					s.push(Z);
+					Z = cars[Z].first;
+				}
+				Z = X - 1;
+				while (Z != -1) {
+					q.push(Z);
+					Z = cars[Z].second;
+				}
+				cout << q.size() + s.size();
+				while (!s.empty()) {
+					cout << ' ' << s.top() + 1;
+					s.pop();
+				}
+				while (!q.empty()) {
+					cout << ' ' << q.front() + 1;
+					q.pop();
+				}
+				cout << '\n';
+				break;
+		}
 	}
 
 	return 0;
