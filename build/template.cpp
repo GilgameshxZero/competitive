@@ -647,20 +647,20 @@ class Tree : public SegmentTree<LL, LL> {
 		Value const &left,
 		Value const &right,
 		std::pair<std::size_t, std::size_t> const &range,
-		std::size_t node) {}
+		std::size_t node) override {}
 
 	virtual void propagate(
 		Update const &update,
-		Value &leftChild,
-		Value &rightChild,
+		Update &leftChild,
+		Update &rightChild,
 		std::pair<std::size_t, std::size_t> const &range,
-		std::size_t node) {}
+		std::size_t node) override {}
 
 	virtual void apply(
 		Value &value,
 		Update const &update,
 		std::pair<std::size_t, std::size_t> const &range,
-		std::size_t node) {}
+		std::size_t node) override {}
 };
 */
 

@@ -450,6 +450,9 @@ class SegmentTree {
 	// Aggregate values at each node.
 	std::vector<Value> values;
 
+	// Coverage range of each node.
+	std::vector<std::pair<std::size_t, std::size_t>> ranges;
+
 	// Size of underlying array.
 	std::size_t size,
 		// First leaf node.
@@ -465,10 +468,11 @@ class SegmentTree {
 	// Segment tree for an underlying array of size size. Must be at least 2.
 	SegmentTree(std::size_t const size)
 			: values((1_zu << (mostSignificant1BitIdx(size - 1) + 1)) - 1 + size),
+				ranges(this->values.size()),
 				size(size),
-				firstLeaf(values.size() - size),
-				lazy(firstLeaf, false),
-				updates(firstLeaf) {}
+				firstLeaf(this->values.size() - size),
+				lazy(this->firstLeaf, false),
+				updates(this->firstLeaf) {}
 
 	protected:
 	// Aggregate values from two children. Aggregating with a
@@ -634,6 +638,36 @@ class SegmentTree {
 	}
 };
 
+/*
+// Sample segment tree subclass implementation.
+
+class Tree : public SegmentTree<LL, LL> {
+	using Value = LL;
+	using Update = LL;
+	using SegmentTree<Value, Update>::SegmentTree;
+
+	protected:
+	virtual Value aggregate(
+		Value const &left,
+		Value const &right,
+		std::pair<std::size_t, std::size_t> const &range,
+		std::size_t node) {}
+
+	virtual void propagate(
+		Update const &update,
+		Update &leftChild,
+		Update &rightChild,
+		std::pair<std::size_t, std::size_t> const &range,
+		std::size_t node) {}
+
+	virtual void apply(
+		Value &value,
+		Update const &update,
+		std::pair<std::size_t, std::size_t> const &range,
+		std::size_t node) {}
+};
+*/
+
 // Shorthand for common types.
 using ZU = std::size_t;
 using LL = long long;
@@ -654,9 +688,9 @@ using namespace std;
 
 /* ---------------------------- End of template. ---------------------------- */
 
-class Tree : public SegmentTree<LL, LL> {
+class Tree : public SegmentTree<LL, char> {
 	using Value = LL;
-	using Update = LL;
+	using Update = char;
 	using SegmentTree<Value, Update>::SegmentTree;
 
 	protected:
@@ -664,27 +698,67 @@ class Tree : public SegmentTree<LL, LL> {
 		Value const &left,
 		Value const &right,
 		std::pair<std::size_t, std::size_t> const &range,
-		std::size_t node) {}
+		std::size_t node) {
+		return left + right;
+	}
 
 	virtual void propagate(
 		Update const &update,
-		Value &leftChild,
-		Value &rightChild,
+		Update &leftChild,
+		Update &rightChild,
 		std::pair<std::size_t, std::size_t> const &range,
-		std::size_t node) {}
+		std::size_t node) {
+		leftChild ^= update;
+		rightChild ^= update;
+	}
 
 	virtual void apply(
 		Value &value,
 		Update const &update,
 		std::pair<std::size_t, std::size_t> const &range,
-		std::size_t node) {}
+		std::size_t node) {
+		value = update ? range.second - range.first + 1 - value : value;
+	}
 };
 
 int main(int argc, char const *argv[]) {
-	LL N, M;
+	LL N;
 	cin >> N;
 
-	Tree tree(N);
+	Tree trees[]{N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N};
+	RF(i, 0, N) {
+		LL A;
+		cin >> A;
+
+		RF(j, 0, 20) {
+			if (A & (1LL << j)) {
+				trees[j].update(i, i, 1);
+			}
+		}
+	}
+
+	LL M;
+	cin >> M;
+	RF(i, 0, M) {
+		LL T;
+		cin >> T;
+		if (T == 1) {
+			LL L, R;
+			cin >> L >> R;
+
+			LL sum = 0;
+			RF(j, 0, 20) { sum += (1LL << j) * trees[j].query(L - 1, R - 1); }
+			cout << sum << '\n';
+		} else {
+			LL L, R, X;
+			cin >> L >> R >> X;
+			RF(j, 0, 20) {
+				if (X & (1LL << j)) {
+					trees[j].update(L - 1, R - 1, 1);
+				}
+			}
+		}
+	}
 
 	return 0;
 }
