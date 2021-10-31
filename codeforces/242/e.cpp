@@ -634,8 +634,25 @@ class SegmentTree {
 	}
 };
 
-/*
-// Sample segment tree subclass implementation.
+// Shorthand for common types.
+using ZU = std::size_t;
+using LL = long long;
+using ULL = unsigned long long;
+using LD = long double;
+template <typename First, typename Second>
+using PR = std::pair<First, Second>;
+template <typename Type>
+using VR = std::vector<Type>;
+
+// Shorthand for loop in range [from, to).
+#define RF(x, from, to) \
+	for (long long x = from, _rfDir = from < to ? 1 : -1; x != to; x += _rfDir)
+
+// Imports std scope into global scope; care for name conflicts. Also imports
+// literals in std::literals.
+using namespace std;
+
+/* ---------------------------- End of template. ---------------------------- */
 
 class Tree : public SegmentTree<LL, LL> {
 	using Value = LL;
@@ -662,33 +679,12 @@ class Tree : public SegmentTree<LL, LL> {
 		std::pair<std::size_t, std::size_t> const &range,
 		std::size_t node) {}
 };
-*/
-
-// Shorthand for common types.
-using ZU = std::size_t;
-using LL = long long;
-using ULL = unsigned long long;
-using LD = long double;
-template <typename First, typename Second>
-using PR = std::pair<First, Second>;
-template <typename Type>
-using VR = std::vector<Type>;
-
-// Shorthand for loop in range [from, to).
-#define RF(x, from, to) \
-	for (long long x = from, _rfDir = from < to ? 1 : -1; x != to; x += _rfDir)
-
-// Imports std scope into global scope; care for name conflicts. Also imports
-// literals in std::literals.
-using namespace std;
-
-/* ---------------------------- End of template. ---------------------------- */
 
 int main(int argc, char const *argv[]) {
-	LL T;
-	cin >> T;
-	while (T--) {
-	}
+	LL N, M;
+	cin >> N;
+
+	Tree tree(N);
 
 	return 0;
 }
