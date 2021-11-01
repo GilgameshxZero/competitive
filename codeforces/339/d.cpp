@@ -378,56 +378,170 @@ class SegmentTree {
 
 /* ---------------------------- End of template. ---------------------------- */
 
-class Tree : public SegmentTree<LL, LL> {
-	using SegmentTree<LL, LL>::SegmentTree;
+// Segment tree with lazy propagation, supporting range queries and range
+// updates in O(ln N) and O(N) memory.
+//
+// RVO helps with heavier Value types, but is not guaranteed. Value must be
+// zero-initialized to be valid. Update must be light-copyable.
+//
+// Index 0 is unused. For parent i, 2i is the left child and 2i + 1 is the
+// right child.
+template <typename Value = LL, typename Update = LL>
+class Tree {
+	protected:
+	std::size_t const N;
 
-	private:
-	LL N;
+	// Aggregate values at each node.
+	std::vector<Value> values;
+
+	// True iff node has a pending lazy update to propagate.
+	std::vector<bool> lazy;
+
+	// Lazily-stored updates.
+	std::vector<Update> updates;
 
 	public:
-	Tree(LL N) : SegmentTree(1LL << N), N(N) {}
+	// Segment tree for an underlying array of size size.
+	Tree(std::size_t const N)
+			: N(N),
+				values(1_zu << (N + 1)),
+				lazy(values.size(), false),
+				updates(values.size()) {}
 
 	protected:
 	// Aggregate values from two children. Aggregating with a
 	// default-initialized Value should do nothing. The combined range of the
 	// two children is supplied.
-	//
-	// The internal index of the parent is provided for convenience.
-	virtual LL aggregate(
-		LL const &left,
-		LL const &right,
-		std::pair<std::size_t, std::size_t> const &range,
-		std::size_t node) override {
-		LL depth = mostSignificant1BitIdx(node + 1);
+	Value aggregate(
+		std::size_t const node,
+		Value const &left,
+		Value const &right,
+		std::pair<std::size_t, std::size_t> const &range) {
+		LL depth = mostSignificant1BitIdx(node);
 		if ((this->N - depth) % 2) {
 			return left | right;
 		}
 		return left ^ right;
 	}
 
-	// Propagate an update on a parent to its two children.
-	//
-	// The internal index of the parent is provided for convenience.
-	virtual void propagate(
-		LL const &update,
-		LL &leftChild,
-		LL &rightChild,
-		std::pair<std::size_t, std::size_t> const &range,
-		std::size_t node) override {
-		// Never used, do nothing.
-	}
+	// Propagate an update on a parent to its two children. Lazy bits for the
+	// children are set beforehand, but can be unset in the function.
+	void push(
+		std::size_t const node,
+		Update const &update,
+		typename std::vector<Update>::reference left,
+		typename std::vector<Update>::reference right,
+		std::pair<std::size_t, std::size_t> const &range) {}
 
-	// Apply an update to a node, with the range of the update supplied. The
-	// range of the update is a subset of the range of the node.
-	//
-	// The internal index of the parent is provided for convenience.
-	virtual void apply(
-		LL &value,
-		LL const &update,
-		std::pair<std::size_t, std::size_t> const &range,
-		std::size_t node) override {
+	// Apply an update fully to a lazy node.
+	void apply(
+		std::size_t const node,
+		typename std::vector<Value>::reference value,
+		Update const &update,
+		std::pair<std::size_t, std::size_t> const &range) {
 		// Only used on single nodes.
 		value = update;
+	}
+
+	public:
+	// Queries a range, propagating if necessary then aggregating.
+	Value query(std::size_t const left, std::size_t const right) {
+		return this->query(1, left, right, {0, this->values.size() / 2 - 1});
+	}
+
+	// Lazy update a range.
+	void update(
+		std::size_t const left,
+		std::size_t const right,
+		Update const &update) {
+		this->update(1, left, right, update, {0, this->values.size() / 2 - 1});
+	}
+
+	private:
+	// Conditionally propagate a node if it is not a leaf and has an update to
+	// propagate.
+	void propagate(
+		std::size_t const node,
+		std::pair<std::size_t, std::size_t> const &range) {
+		if (!this->lazy[node]) {
+			return;
+		}
+
+		// Propagating on a leaf applies it immediately.
+		if (node < this->values.size() / 2) {
+			this->lazy[node * 2] = this->lazy[node * 2 + 1] = true;
+			this->push(
+				node,
+				this->updates[node],
+				this->updates[node * 2],
+				this->updates[node * 2 + 1],
+				range);
+		}
+
+		// Clear the update at this node so it doesn’t interfere with later
+		// propagations.
+		this->apply(node, this->values[node], this->updates[node], range);
+		this->updates[node] = {};
+		this->lazy[node] = false;
+	}
+
+	// Internal recursive query. range is the coverage range of the current node
+	// and is inclusive.
+	Value query(
+		std::size_t const node,
+		std::size_t const left,
+		std::size_t const right,
+		std::pair<std::size_t, std::size_t> const &range) {
+		if (right < range.first || left > range.second) {
+			return {};
+		}
+		this->propagate(node, range);
+
+		// Base case.
+		if (range.first >= left && range.second <= right) {
+			return this->values[node];
+		}
+
+		std::size_t mid = (range.first + range.second) / 2;
+		return this->aggregate(
+			node,
+			this->query(node * 2, left, right, {range.first, mid}),
+			this->query(node * 2 + 1, left, right, {mid + 1, range.second}),
+			range);
+	}
+
+	// Internal recursive update.
+	void update(
+		std::size_t const node,
+		std::size_t const left,
+		std::size_t const right,
+		Update const &update,
+		std::pair<std::size_t, std::size_t> const &range) {
+		if (right < range.first || left > range.second) {
+			return;
+		}
+		// Propagate even if this node is fully covered, since we don’t have a
+		// function to combine two updates.
+		this->propagate(node, range);
+
+		// Base case.
+		if (range.first >= left && range.second <= right) {
+			// This node is already non-lazy since it was just propagated.
+			this->updates[node] = update;
+			this->lazy[node] = true;
+		} else {
+			std::size_t mid = (range.first + range.second) / 2;
+			this->update(node * 2, left, right, update, {range.first, mid});
+			this->update(node * 2 + 1, left, right, update, {mid + 1, range.second});
+
+			// Substitute parent value with aggregate after update has been
+			// propagated. O(1). Guaranteed at least one child, or else the base
+			// case would have triggered.
+			this->propagate(node * 2, {range.first, mid});
+			this->propagate(node * 2 + 1, {mid + 1, range.second});
+			this->values[node] = this->aggregate(
+				node, this->values[node * 2], this->values[node * 2 + 1], range);
+		}
 	}
 };
 
@@ -446,7 +560,7 @@ int main(int argc, char const *argv[]) {
 		LL X, Y;
 		cin >> X >> Y;
 		tree.update(X - 1, X - 1, Y);
-		cout << tree.query(0, 1LL << N) << '\n';
+		cout << tree.query(0, (1LL << N) - 1) << '\n';
 	}
 
 	return 0;

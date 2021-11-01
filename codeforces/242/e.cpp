@@ -436,27 +436,19 @@ class FenwickTree {
 	}
 };
 
-// Segment values with lazy propagation, supporting range queries and range
+// Segment tree with lazy propagation, supporting range queries and range
 // updates in O(ln N) and O(N) memory.
 //
 // RVO helps with heavier Value types, but is not guaranteed. Value must be
 // zero-initialized to be valid. Update must be light-copyable.
 //
-// For parent i, 2i + 1 is the left child, and 2i + 2 is the right child. All
-// left children are odd and all right children are even.
+// Index 0 is unused. For parent i, 2i is the left child and 2i + 1 is the
+// right child.
 template <typename Value, typename Update>
 class SegmentTree {
-	private:
+	protected:
 	// Aggregate values at each node.
 	std::vector<Value> values;
-
-	// Coverage range of each node.
-	std::vector<std::pair<std::size_t, std::size_t>> ranges;
-
-	// Size of underlying array.
-	std::size_t size,
-		// First leaf node.
-		firstLeaf;
 
 	// True iff node has a pending lazy update to propagate.
 	std::vector<bool> lazy;
@@ -465,50 +457,42 @@ class SegmentTree {
 	std::vector<Update> updates;
 
 	public:
-	// Segment tree for an underlying array of size size. Must be at least 2.
+	// Segment tree for an underlying array of size size.
 	SegmentTree(std::size_t const size)
-			: values((1_zu << (mostSignificant1BitIdx(size - 1) + 1)) - 1 + size),
-				ranges(this->values.size()),
-				size(size),
-				firstLeaf(this->values.size() - size),
-				lazy(this->firstLeaf, false),
-				updates(this->firstLeaf) {}
+			: values(1_zu << (mostSignificant1BitIdx(size) + 2)),
+				lazy(values.size(), false),
+				updates(values.size()) {}
 
 	protected:
 	// Aggregate values from two children. Aggregating with a
 	// default-initialized Value should do nothing. The combined range of the
 	// two children is supplied.
-	//
-	// The internal index of the parent is provided for convenience.
 	virtual Value aggregate(
+		std::size_t const node,
 		Value const &left,
 		Value const &right,
-		std::pair<std::size_t, std::size_t> const &range,
-		std::size_t node) = 0;
+		std::pair<std::size_t, std::size_t> const &range) = 0;
 
-	// Propagate an update on a parent to its two children.
-	//
-	// The internal index of the parent is provided for convenience.
-	virtual void propagate(
+	// Propagate an update on a parent to its two children. Lazy bits for the
+	// children are set beforehand, but can be unset in the function.
+	virtual void push(
+		std::size_t const node,
 		Update const &update,
-		Update &leftChild,
-		Update &rightChild,
-		std::pair<std::size_t, std::size_t> const &range,
-		std::size_t node) = 0;
+		typename std::vector<Update>::reference left,
+		typename std::vector<Update>::reference right,
+		std::pair<std::size_t, std::size_t> const &range) = 0;
 
-	// Apply an update to a node, with the range of the node supplied.
-	//
-	// The internal index of the parent is provided for convenience.
+	// Apply an update fully to a lazy node.
 	virtual void apply(
-		Value &value,
+		std::size_t const node,
+		typename std::vector<Value>::reference value,
 		Update const &update,
-		std::pair<std::size_t, std::size_t> const &range,
-		std::size_t node) = 0;
+		std::pair<std::size_t, std::size_t> const &range) = 0;
 
 	public:
 	// Queries a range, propagating if necessary then aggregating.
 	Value query(std::size_t const left, std::size_t const right) {
-		return this->query(left, right, 0, {0, this->firstLeaf});
+		return this->query(1, left, right, {0, this->values.size() / 2 - 1});
 	}
 
 	// Lazy update a range.
@@ -516,57 +500,33 @@ class SegmentTree {
 		std::size_t const left,
 		std::size_t const right,
 		Update const &update) {
-		this->update(left, right, update, 0, {0, this->firstLeaf});
+		this->update(1, left, right, update, {0, this->values.size() / 2 - 1});
 	}
 
 	private:
 	// Conditionally propagate a node if it is not a leaf and has an update to
 	// propagate.
 	void propagate(
-		std::size_t node,
+		std::size_t const node,
 		std::pair<std::size_t, std::size_t> const &range) {
-		if (node >= this->firstLeaf || !this->lazy[node]) {
+		if (!this->lazy[node]) {
 			return;
 		}
 
-		// Perform the propagation, but take care not to go out of bounds.
-		// Propagating to a leaf applies it immediately.
-		std::vector<std::unique_ptr<Update>> tmpUpdates;
-		Update *chUpdates[2];
-		if (node * 2 + 1 < this->firstLeaf) {
-			chUpdates[0] = &this->updates[node * 2 + 1];
-			this->lazy[node * 2 + 1] = true;
-		} else {
-			tmpUpdates.emplace_back(new Update{});
-			chUpdates[0] = tmpUpdates.back().get();
-		}
-		if (node * 2 + 2 < this->firstLeaf) {
-			chUpdates[1] = &this->updates[node * 2 + 2];
-			this->lazy[node * 2 + 2] = true;
-		} else {
-			tmpUpdates.emplace_back(new Update{});
-			chUpdates[1] = tmpUpdates.back().get();
-		}
-		this->propagate(
-			this->updates[node], *chUpdates[0], *chUpdates[1], range, node);
-		if (node * 2 + 1 >= this->firstLeaf) {
-			this->apply(
-				this->values[node * 2 + 1],
-				*chUpdates[0],
-				{node * 2 + 1 - this->firstLeaf, node * 2 + 1 - this->firstLeaf},
-				node * 2 + 1);
-		}
-		if (node * 2 + 2 >= this->firstLeaf) {
-			this->apply(
-				this->values[node * 2 + 2],
-				*chUpdates[1],
-				{node * 2 + 2 - this->firstLeaf, node * 2 + 2 - this->firstLeaf},
-				node * 2 + 2);
+		// Propagating on a leaf applies it immediately.
+		if (node < this->values.size() / 2) {
+			this->lazy[node * 2] = this->lazy[node * 2 + 1] = true;
+			this->push(
+				node,
+				this->updates[node],
+				this->updates[node * 2],
+				this->updates[node * 2 + 1],
+				range);
 		}
 
-		// In any case, clear the update at this node so it doesn’t interfere with
-		// later propagations.
-		this->apply(this->values[node], this->updates[node], range, node);
+		// Clear the update at this node so it doesn’t interfere with later
+		// propagations.
+		this->apply(node, this->values[node], this->updates[node], range);
 		this->updates[node] = {};
 		this->lazy[node] = false;
 	}
@@ -574,9 +534,9 @@ class SegmentTree {
 	// Internal recursive query. range is the coverage range of the current node
 	// and is inclusive.
 	Value query(
+		std::size_t const node,
 		std::size_t const left,
 		std::size_t const right,
-		std::size_t const node,
 		std::pair<std::size_t, std::size_t> const &range) {
 		if (right < range.first || left > range.second) {
 			return {};
@@ -590,18 +550,18 @@ class SegmentTree {
 
 		std::size_t mid = (range.first + range.second) / 2;
 		return this->aggregate(
-			this->query(left, right, node * 2 + 1, {range.first, mid}),
-			this->query(left, right, node * 2 + 2, {mid + 1, range.second}),
-			range,
-			node);
+			node,
+			this->query(node * 2, left, right, {range.first, mid}),
+			this->query(node * 2 + 1, left, right, {mid + 1, range.second}),
+			range);
 	}
 
 	// Internal recursive update.
 	void update(
+		std::size_t const node,
 		std::size_t const left,
 		std::size_t const right,
 		Update const &update,
-		std::size_t const node,
 		std::pair<std::size_t, std::size_t> const &range) {
 		if (right < range.first || left > range.second) {
 			return;
@@ -612,61 +572,24 @@ class SegmentTree {
 
 		// Base case.
 		if (range.first >= left && range.second <= right) {
-			if (node < this->firstLeaf) {
-				this->updates[node] = update;
-				this->lazy[node] = true;
-			} else {
-				this->apply(this->values[node], update, range, node);
-			}
+			// This node is already non-lazy since it was just propagated.
+			this->updates[node] = update;
+			this->lazy[node] = true;
 		} else {
 			std::size_t mid = (range.first + range.second) / 2;
-			this->update(left, right, update, node * 2 + 1, {range.first, mid});
-			this->update(left, right, update, node * 2 + 2, {mid + 1, range.second});
+			this->update(node * 2, left, right, update, {range.first, mid});
+			this->update(node * 2 + 1, left, right, update, {mid + 1, range.second});
 
 			// Substitute parent value with aggregate after update has been
 			// propagated. O(1). Guaranteed at least one child, or else the base
 			// case would have triggered.
-			this->propagate(node * 2 + 1, {range.first, mid});
-			this->propagate(node * 2 + 2, {mid + 1, range.second});
+			this->propagate(node * 2, {range.first, mid});
+			this->propagate(node * 2 + 1, {mid + 1, range.second});
 			this->values[node] = this->aggregate(
-				this->values[node * 2 + 1],
-				node * 2 + 2 < this->values.size() ? this->values[node * 2 + 2]
-																					 : Value{},
-				range,
-				node);
+				node, this->values[node * 2], this->values[node * 2 + 1], range);
 		}
 	}
 };
-
-/*
-// Sample segment tree subclass implementation.
-
-class Tree : public SegmentTree<LL, LL> {
-	using Value = LL;
-	using Update = LL;
-	using SegmentTree<Value, Update>::SegmentTree;
-
-	protected:
-	virtual Value aggregate(
-		Value const &left,
-		Value const &right,
-		std::pair<std::size_t, std::size_t> const &range,
-		std::size_t node) {}
-
-	virtual void propagate(
-		Update const &update,
-		Update &leftChild,
-		Update &rightChild,
-		std::pair<std::size_t, std::size_t> const &range,
-		std::size_t node) {}
-
-	virtual void apply(
-		Value &value,
-		Update const &update,
-		std::pair<std::size_t, std::size_t> const &range,
-		std::size_t node) {}
-};
-*/
 
 // Shorthand for common types.
 using ZU = std::size_t;
@@ -688,72 +611,78 @@ using namespace std;
 
 /* ---------------------------- End of template. ---------------------------- */
 
-class Tree : public SegmentTree<LL, char> {
-	using Value = LL;
-	using Update = char;
+class Tree : public SegmentTree<int, bool> {
+	using Value = int;
+	using Update = bool;
 	using SegmentTree<Value, Update>::SegmentTree;
 
 	protected:
+	// Aggregate values from two children. Aggregating with a
+	// default-initialized Value should do nothing. The combined range of the
+	// two children is supplied.
 	virtual Value aggregate(
+		std::size_t const node,
 		Value const &left,
 		Value const &right,
-		std::pair<std::size_t, std::size_t> const &range,
-		std::size_t node) {
+		std::pair<std::size_t, std::size_t> const &range) {
 		return left + right;
 	}
 
-	virtual void propagate(
+	// Propagate an update on a parent to its two children. Lazy bits for the
+	// children are set beforehand, but can be unset in the function.
+	virtual void push(
+		std::size_t const node,
 		Update const &update,
-		Update &leftChild,
-		Update &rightChild,
-		std::pair<std::size_t, std::size_t> const &range,
-		std::size_t node) {
-		leftChild ^= update;
-		rightChild ^= update;
+		typename std::vector<Update>::reference left,
+		typename std::vector<Update>::reference right,
+		std::pair<std::size_t, std::size_t> const &range) {
+		this->lazy[node * 2] = left = left ^ this->updates[node];
+		this->lazy[node * 2 + 1] = right = right ^ this->updates[node];
 	}
 
+	// Apply an update fully to a lazy node.
 	virtual void apply(
-		Value &value,
+		std::size_t const node,
+		typename std::vector<Value>::reference value,
 		Update const &update,
-		std::pair<std::size_t, std::size_t> const &range,
-		std::size_t node) {
-		value = update ? range.second - range.first + 1 - value : value;
+		std::pair<std::size_t, std::size_t> const &range) {
+		value = range.second - range.first + 1 - value;
 	}
 };
 
 int main(int argc, char const *argv[]) {
-	LL N;
+	int N;
 	cin >> N;
 
 	Tree trees[]{N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N};
 	RF(i, 0, N) {
-		LL A;
+		int A;
 		cin >> A;
 
 		RF(j, 0, 20) {
-			if (A & (1LL << j)) {
+			if (A & (1 << j)) {
 				trees[j].update(i, i, 1);
 			}
 		}
 	}
 
-	LL M;
+	int M;
 	cin >> M;
 	RF(i, 0, M) {
-		LL T;
+		int T;
 		cin >> T;
 		if (T == 1) {
-			LL L, R;
+			int L, R;
 			cin >> L >> R;
 
 			LL sum = 0;
 			RF(j, 0, 20) { sum += (1LL << j) * trees[j].query(L - 1, R - 1); }
 			cout << sum << '\n';
 		} else {
-			LL L, R, X;
+			int L, R, X;
 			cin >> L >> R >> X;
 			RF(j, 0, 20) {
-				if (X & (1LL << j)) {
+				if (X & (1 << j)) {
 					trees[j].update(L - 1, R - 1, 1);
 				}
 			}
