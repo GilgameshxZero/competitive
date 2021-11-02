@@ -637,6 +637,19 @@ int main(int argc, char const *argv[]) {
 	LL T;
 	cin >> T;
 	while (T--) {
+		string A, S;
+		cin >> A >> S;
+
+		map<char, LL> ia;
+		RF(i, 0, 26) {
+			ia[A[i]] = i;
+		}
+
+		LL ans = 0;
+		RF(i, 1, S.length()) {
+			ans += abs(ia[S[i]] - ia[S[i - 1]]);
+		}
+		cout << ans << '\n';
 	}
 
 	return 0;

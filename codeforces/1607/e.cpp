@@ -637,6 +637,45 @@ int main(int argc, char const *argv[]) {
 	LL T;
 	cin >> T;
 	while (T--) {
+		LL N, M;
+		string S;
+		cin >> N >> M >> S;
+
+		LL x, y, w, h, sx, sy, px, py;
+		x = y = sx = sy = 0;
+		w = h = 1;
+
+		RF(i, 0, S.length()) {
+			px = sx;
+			py = sy;
+			if (S[i] == 'L') {
+				x--;
+			} else if (S[i] == 'R') {
+				x++;
+			} else if (S[i] == 'U') {
+				y--;
+			} else {
+				y++;
+			}
+			if (x < 0) {
+				x++;
+				w++;
+				sx++;
+			} else if (y < 0) {
+				y++;
+				h++;
+				sy++;
+			}
+			w = max(w, x + 1);
+			h = max(h, y + 1);
+
+			if (w > M || h > N) {
+				sx = px;
+				sy = py;
+				break;
+			}
+		}
+		cout << sy + 1 << ' ' << sx + 1 << '\n';
 	}
 
 	return 0;

@@ -637,6 +637,19 @@ int main(int argc, char const *argv[]) {
 	LL T;
 	cin >> T;
 	while (T--) {
+		LL X, N;
+		cin >> X >> N;
+
+		LL D = N / 4;
+		RF(i, D * 4 + 1, N + 1) {
+			if (X % 2) {
+				X += i;
+			} else {
+				X -= i;
+			}
+		}
+
+		cout << X << '\n';
 	}
 
 	return 0;

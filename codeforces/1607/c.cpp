@@ -637,6 +637,23 @@ int main(int argc, char const *argv[]) {
 	LL T;
 	cin >> T;
 	while (T--) {
+		LL N;
+		cin >> N;
+
+		vector<LL> A;
+		RF(i, 0, N) {
+			LL X;
+			cin >> X;
+			A.push_back(X);
+		}
+		sort(A.begin(), A.end());
+
+		LL presum = 0, ans = A[0];
+		RF(i, 0, N) {
+			ans = max(ans, A[i] - presum);
+			presum += A[i] - presum;
+		}
+		cout << ans << '\n';
 	}
 
 	return 0;

@@ -633,10 +633,224 @@ using namespace std;
 
 /* ---------------------------- End of template. ---------------------------- */
 
+string board[2000];
+int ans[2000][2000];
+
+void dfs2(short i, short j, int s) {
+	if (ans[i][j] == -2) {
+		return;
+	}
+	ans[i][j] = -2;
+	if (board[i][j] == 'U') {
+		dfs2(i - 1, j, s);
+	}
+	if (board[i][j] == 'R') {
+		dfs2(i, j + 1, s);
+	}
+	if (board[i][j] == 'D') {
+		dfs2(i + 1, j, s);
+	}
+	if (board[i][j] == 'L') {
+		dfs2(i, j - 1, s);
+	}
+	ans[i][j] = s;
+}
+
+short dfs(short i, short j) {
+	if (ans[i][j] > 0) {
+		return ans[i][j];
+	} else if (ans[i][j] == -1) {
+		ans[i][j] = -3;
+		return 0;
+	}
+
+	ans[i][j] = -1;
+	int res;
+	if (board[i][j] == 'U') {
+		res = dfs(i - 1, j);
+	}
+	if (board[i][j] == 'R') {
+		res = dfs(i, j + 1);
+	}
+	if (board[i][j] == 'D') {
+		res = dfs(i + 1, j);
+	}
+	if (board[i][j] == 'L') {
+		res = dfs(i, j - 1);
+	}
+
+	if (ans[i][j] == -3) {
+		dfs2(i, j, res + 1);
+	}
+
+	return ans[i][j] = res + 1;
+}
+
 int main(int argc, char const *argv[]) {
-	LL T;
+	short T;
 	cin >> T;
 	while (T--) {
+		short R, C;
+		cin >> R >> C;
+		RF(i, 0, R) { cin >> board[i]; }
+
+		RF(i, 0, R) {
+			RF(j, 0, C) { ans[i][j] = 0; }
+		}
+		RF(j, 0, C) {
+			if (board[0][j] == 'U') {
+				ans[0][j] = 1;
+				queue<PR<short, short>> q;
+				q.push({0, j});
+				while (!q.empty()) {
+					auto f = q.front();
+					q.pop();
+					if (
+						f.first > 0 && board[f.first - 1][f.second] == 'D' &&
+						ans[f.first - 1][f.second] == 0) {
+						ans[f.first - 1][f.second] = ans[f.first][f.second] + 1;
+						q.push({f.first - 1, f.second});
+					}
+					if (
+						f.second > 0 && board[f.first][f.second - 1] == 'R' &&
+						ans[f.first][f.second - 1] == 0) {
+						ans[f.first][f.second - 1] = ans[f.first][f.second] + 1;
+						q.push({f.first, f.second - 1});
+					}
+					if (
+						f.first < R - 1 && board[f.first + 1][f.second] == 'U' &&
+						ans[f.first + 1][f.second] == 0) {
+						ans[f.first + 1][f.second] = ans[f.first][f.second] + 1;
+						q.push({f.first + 1, f.second});
+					}
+					if (
+						f.second < C - 1 && board[f.first][f.second + 1] == 'L' &&
+						ans[f.first][f.second + 1] == 0) {
+						ans[f.first][f.second + 1] = ans[f.first][f.second] + 1;
+						q.push({f.first, f.second + 1});
+					}
+				}
+			}
+		}
+		RF(i, 0, R) {
+			if (board[i][C - 1] == 'R') {
+				ans[i][C - 1] = 1;
+				queue<PR<short, short>> q;
+				q.push({i, C - 1});
+				while (!q.empty()) {
+					auto f = q.front();
+					q.pop();
+					if (
+						f.first > 0 && board[f.first - 1][f.second] == 'D' &&
+						ans[f.first - 1][f.second] == 0) {
+						ans[f.first - 1][f.second] = ans[f.first][f.second] + 1;
+						q.push({f.first - 1, f.second});
+					}
+					if (
+						f.second > 0 && board[f.first][f.second - 1] == 'R' &&
+						ans[f.first][f.second - 1] == 0) {
+						ans[f.first][f.second - 1] = ans[f.first][f.second] + 1;
+						q.push({f.first, f.second - 1});
+					}
+					if (
+						f.first < R - 1 && board[f.first + 1][f.second] == 'U' &&
+						ans[f.first + 1][f.second] == 0) {
+						ans[f.first + 1][f.second] = ans[f.first][f.second] + 1;
+						q.push({f.first + 1, f.second});
+					}
+					if (
+						f.second < C - 1 && board[f.first][f.second + 1] == 'L' &&
+						ans[f.first][f.second + 1] == 0) {
+						ans[f.first][f.second + 1] = ans[f.first][f.second] + 1;
+						q.push({f.first, f.second + 1});
+					}
+				}
+			}
+		}
+		RF(j, 0, C) {
+			if (board[R - 1][j] == 'D') {
+				ans[R - 1][j] = 1;
+				queue<PR<short, short>> q;
+				q.push({R - 1, j});
+				while (!q.empty()) {
+					auto f = q.front();
+					q.pop();
+					if (
+						f.first > 0 && board[f.first - 1][f.second] == 'D' &&
+						ans[f.first - 1][f.second] == 0) {
+						ans[f.first - 1][f.second] = ans[f.first][f.second] + 1;
+						q.push({f.first - 1, f.second});
+					}
+					if (
+						f.second > 0 && board[f.first][f.second - 1] == 'R' &&
+						ans[f.first][f.second - 1] == 0) {
+						ans[f.first][f.second - 1] = ans[f.first][f.second] + 1;
+						q.push({f.first, f.second - 1});
+					}
+					if (
+						f.first < R - 1 && board[f.first + 1][f.second] == 'U' &&
+						ans[f.first + 1][f.second] == 0) {
+						ans[f.first + 1][f.second] = ans[f.first][f.second] + 1;
+						q.push({f.first + 1, f.second});
+					}
+					if (
+						f.second < C - 1 && board[f.first][f.second + 1] == 'L' &&
+						ans[f.first][f.second + 1] == 0) {
+						ans[f.first][f.second + 1] = ans[f.first][f.second] + 1;
+						q.push({f.first, f.second + 1});
+					}
+				}
+			}
+		}
+		RF(i, 0, R) {
+			if (board[i][0] == 'L') {
+				ans[i][0] = 1;
+				queue<PR<short, short>> q;
+				q.push({i, 0});
+				while (!q.empty()) {
+					auto f = q.front();
+					q.pop();
+					if (
+						f.first > 0 && board[f.first - 1][f.second] == 'D' &&
+						ans[f.first - 1][f.second] == 0) {
+						ans[f.first - 1][f.second] = ans[f.first][f.second] + 1;
+						q.push({f.first - 1, f.second});
+					}
+					if (
+						f.second > 0 && board[f.first][f.second - 1] == 'R' &&
+						ans[f.first][f.second - 1] == 0) {
+						ans[f.first][f.second - 1] = ans[f.first][f.second] + 1;
+						q.push({f.first, f.second - 1});
+					}
+					if (
+						f.first < R - 1 && board[f.first + 1][f.second] == 'U' &&
+						ans[f.first + 1][f.second] == 0) {
+						ans[f.first + 1][f.second] = ans[f.first][f.second] + 1;
+						q.push({f.first + 1, f.second});
+					}
+					if (
+						f.second < C - 1 && board[f.first][f.second + 1] == 'L' &&
+						ans[f.first][f.second + 1] == 0) {
+						ans[f.first][f.second + 1] = ans[f.first][f.second] + 1;
+						q.push({f.first, f.second + 1});
+					}
+				}
+			}
+		}
+
+		short fi, fj;
+		fi = fj = 0;
+		RF(i, 0, R) {
+			RF(j, 0, C) {
+				dfs(i, j);
+				if (ans[i][j] > ans[fi][fj]) {
+					fi = i;
+					fj = j;
+				}
+			}
+		}
+
+		cout << fi + 1 << ' ' << fj + 1 << ' ' << ans[fi][fj] << '\n';
 	}
 
 	return 0;

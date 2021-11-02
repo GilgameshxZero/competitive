@@ -637,6 +637,39 @@ int main(int argc, char const *argv[]) {
 	LL T;
 	cin >> T;
 	while (T--) {
+		LL N;
+		cin >> N;
+		VR<LL> A(N);
+		string S;
+		RF(i, 0, N) { cin >> A[i]; }
+		cin >> S;
+
+		bool ans = true;
+		multiset<LL> b, r;
+		RF(i, 0, N) {
+			if (S[i] == 'B') {
+				b.insert(A[i] - 1);
+			} else {
+				r.insert(-(A[i] - 1));
+			}
+		}
+		RF(i, 0, N) {
+			while (!b.empty() && *b.begin() < i) {
+				b.erase(b.begin());
+			}
+			if (b.size() > 0) {
+				b.erase(b.begin());
+			} else {
+				auto it = r.lower_bound(-i);
+				if (it == r.end()) {
+					ans = false;
+					break;
+				} else {
+					r.erase(it);
+				}
+			}
+		}
+		cout << (ans ? "Yes" : "No") << '\n';
 	}
 
 	return 0;
