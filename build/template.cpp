@@ -6,6 +6,7 @@
 #endif
 
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <bitset>
 #include <cassert>
@@ -444,9 +445,12 @@ class FenwickTree {
 //
 // Index 0 is unused. For parent i, 2i is the left child and 2i + 1 is the
 // right child.
-template <typename Value, typename Update>
+template <typename _Value, typename _Update>
 class SegmentTree {
 	protected:
+	using Value = _Value;
+	using Update = _Update;
+
 	// Aggregate values at each node.
 	std::vector<Value> values;
 
@@ -457,18 +461,13 @@ class SegmentTree {
 	std::vector<Update> updates;
 
 	public:
-	// Segment tree for an underlying array of size size.
+	// Segment tree for a segment array of size size.
 	SegmentTree(std::size_t const size)
-			: values(1_zu << (mostSignificant1BitIdx(size) + 2)),
+			: values(1_zu << (mostSignificant1BitIdx(size - 1) + 2)),
 				lazy(values.size(), false),
 				updates(values.size()) {}
 
 	protected:
-	// The following virtual functions specify custom behavior for the segtree.
-	// However, vtable lookups and possible prevention of inlining from these
-	// may cuase significant performance loss. Thus, for performance critical
-	// code, consider implementing these as non-virtual functions.
-
 	// Aggregate values from two children. Aggregating with a
 	// default-initialized Value should do nothing. The combined range of the
 	// two children is supplied.
@@ -605,6 +604,8 @@ template <typename First, typename Second>
 using PR = std::pair<First, Second>;
 template <typename Type>
 using VR = std::vector<Type>;
+template <typename Type, std::size_t Size>
+using AR = std::array<Type, Size>;
 
 // Shorthand for loop in range [from, to).
 #define RF(x, from, to) \
