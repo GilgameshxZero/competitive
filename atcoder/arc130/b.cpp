@@ -634,75 +634,23 @@ using namespace std;
 /* ---------------------------- End of template. ---------------------------- */
 
 int main(int argc, char const *argv[]) {
-	LL N;
-	cin >> N;
-	VR<LL> A(N), B(N);
-	RF(i, 0, N) { cin >> A[i]; }
-	RF(i, 0, N) { cin >> B[i]; }
+	LL H, W, C, Q;
+	cin >> H >> W >> C >> Q;
+	VR<LL> T(Q), N(Q), C_(Q);
+	RF(i, Q - 1, -1) { cin >> T[i] >> N[i] >> C_[i]; }
 
-	priority_queue<PR<LL, LL>> pq;
-	LL cur = 0;
-	RF(i, 0, N) {
-		if (i == 0) {
-			pq.push({B[0] + B.back() - A[0], 0});
-		} else {
-			pq.push({B[i] + B[i - 1] - A[i], i});
-		}
-		cur += B[i];
-	}
-
-	VR<bool> cut(N, false);
-	auto contrib = [&](LL i) {
-		LL j = i == N - 1 ? 0 : i + 1;
-		return cut[i] || cut[j] ? 0 : 1;
-	};
-	while (!pq.empty()) {
-		LL i = pq.top().second, j = i == 0 ? N - 1 : i - 1;
-		pq.pop();
-		LL real = cut[i] ? -A[i] : A[i];
-		real -= contrib(i) * B[i] + contrib(j) * B[j];
-		cut[i] = !cut[i];
-		real += contrib(i) * B[i] + contrib(j) * B[j];
-		cut[i] = !cut[i];
-		if (real < 0) {
-			cur += real;
-			cut[i] = !cut[i];
-
-			LL k = i;
-			j = k == 0 ? N - 1 : k - 1;
-			LL next = cut[k] ? -A[k] : A[k];
-			next -= contrib(k) * B[k] + contrib(j) * B[j];
-			cut[k] = !cut[k];
-			next += contrib(k) * B[k] + contrib(j) * B[j];
-			cut[k] = !cut[k];
-			if (next < 0) {
-				pq.push({-next, k});
-			}
-
-			k = i == 0 ? N - 1 : i - 1;
-			j = k == 0 ? N - 1 : k - 1;
-			next = cut[k] ? -A[k] : A[k];
-			next -= contrib(k) * B[k] + contrib(j) * B[j];
-			cut[k] = !cut[k];
-			next += contrib(k) * B[k] + contrib(j) * B[j];
-			cut[k] = !cut[k];
-			if (next < 0) {
-				pq.push({-next, k});
-			}
-
-			k = i == N - 1 ? 0 : i + 1;
-			j = k == 0 ? N - 1 : k - 1;
-			next = cut[k] ? -A[k] : A[k];
-			next -= contrib(k) * B[k] + contrib(j) * B[j];
-			cut[k] = !cut[k];
-			next += contrib(k) * B[k] + contrib(j) * B[j];
-			cut[k] = !cut[k];
-			if (next < 0) {
-				pq.push({-next, k});
-			}
+	set<LL> rows, cols;
+	VR<LL> ans(C);
+	RF(i, 0, Q) {
+		if (T[i] == 1 && rows.find(N[i] - 1) == rows.end()) {
+			ans[C_[i] - 1] += W - cols.size();
+			rows.insert(N[i] - 1);
+		} else if (T[i] == 2 && cols.find(N[i] - 1) == cols.end()) {
+			ans[C_[i] - 1] += H - rows.size();
+			cols.insert(N[i] - 1);
 		}
 	}
-	cout << cur;
+	RF(i, 0, C) { cout << ans[i] << ' '; }
 
 	return 0;
 }

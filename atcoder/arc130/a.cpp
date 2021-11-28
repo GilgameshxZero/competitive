@@ -636,73 +636,19 @@ using namespace std;
 int main(int argc, char const *argv[]) {
 	LL N;
 	cin >> N;
-	VR<LL> A(N), B(N);
-	RF(i, 0, N) { cin >> A[i]; }
-	RF(i, 0, N) { cin >> B[i]; }
-
-	priority_queue<PR<LL, LL>> pq;
-	LL cur = 0;
-	RF(i, 0, N) {
-		if (i == 0) {
-			pq.push({B[0] + B.back() - A[0], 0});
+	string S;
+	cin >> S;
+	S.push_back(' ');
+	LL ans = 0, run = 0;
+	RF(i, 1, S.length()) {
+		if (S[i] == S[i - 1]) {
+			run++;
 		} else {
-			pq.push({B[i] + B[i - 1] - A[i], i});
-		}
-		cur += B[i];
-	}
-
-	VR<bool> cut(N, false);
-	auto contrib = [&](LL i) {
-		LL j = i == N - 1 ? 0 : i + 1;
-		return cut[i] || cut[j] ? 0 : 1;
-	};
-	while (!pq.empty()) {
-		LL i = pq.top().second, j = i == 0 ? N - 1 : i - 1;
-		pq.pop();
-		LL real = cut[i] ? -A[i] : A[i];
-		real -= contrib(i) * B[i] + contrib(j) * B[j];
-		cut[i] = !cut[i];
-		real += contrib(i) * B[i] + contrib(j) * B[j];
-		cut[i] = !cut[i];
-		if (real < 0) {
-			cur += real;
-			cut[i] = !cut[i];
-
-			LL k = i;
-			j = k == 0 ? N - 1 : k - 1;
-			LL next = cut[k] ? -A[k] : A[k];
-			next -= contrib(k) * B[k] + contrib(j) * B[j];
-			cut[k] = !cut[k];
-			next += contrib(k) * B[k] + contrib(j) * B[j];
-			cut[k] = !cut[k];
-			if (next < 0) {
-				pq.push({-next, k});
-			}
-
-			k = i == 0 ? N - 1 : i - 1;
-			j = k == 0 ? N - 1 : k - 1;
-			next = cut[k] ? -A[k] : A[k];
-			next -= contrib(k) * B[k] + contrib(j) * B[j];
-			cut[k] = !cut[k];
-			next += contrib(k) * B[k] + contrib(j) * B[j];
-			cut[k] = !cut[k];
-			if (next < 0) {
-				pq.push({-next, k});
-			}
-
-			k = i == N - 1 ? 0 : i + 1;
-			j = k == 0 ? N - 1 : k - 1;
-			next = cut[k] ? -A[k] : A[k];
-			next -= contrib(k) * B[k] + contrib(j) * B[j];
-			cut[k] = !cut[k];
-			next += contrib(k) * B[k] + contrib(j) * B[j];
-			cut[k] = !cut[k];
-			if (next < 0) {
-				pq.push({-next, k});
-			}
+			ans += run * (run + 1) / 2;
+			run = 0;
 		}
 	}
-	cout << cur;
+	cout << ans;
 
 	return 0;
 }

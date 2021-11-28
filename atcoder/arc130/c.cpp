@@ -634,75 +634,116 @@ using namespace std;
 /* ---------------------------- End of template. ---------------------------- */
 
 int main(int argc, char const *argv[]) {
-	LL N;
-	cin >> N;
-	VR<LL> A(N), B(N);
-	RF(i, 0, N) { cin >> A[i]; }
-	RF(i, 0, N) { cin >> B[i]; }
+	string S1, S2;
+	cin >> S1 >> S2;
+	bool swapped = S1.length() > S2.length();
+	if (swapped) {
+		swap(S1, S2);
+	}
 
-	priority_queue<PR<LL, LL>> pq;
-	LL cur = 0;
-	RF(i, 0, N) {
-		if (i == 0) {
-			pq.push({B[0] + B.back() - A[0], 0});
+	LL c1[10]{0}, c2[10]{0};
+	RF(i, 0, S1.length()) { c1[S1[i] - '0']++; }
+	RF(i, 0, S2.length()) { c2[S2[i] - '0']++; }
+
+	VR<PR<LL, LL>> nc, mc, fc;
+	VR<LL> nc2;
+	LL i = 1, t1 = S1.length(), t2 = S2.length();
+	while (i < 10 && t1 > 0 && t2 > 0) {
+		if (c2[i] == 0) {
+			i++;
+			continue;
+		}
+		c2[i]--;
+		t2--;
+		if (c1[9 - i] > 0) {
+			c1[9 - i]--;
+			t1--;
+			mc.push_back({9 - i, i});
 		} else {
-			pq.push({B[i] + B[i - 1] - A[i], i});
-		}
-		cur += B[i];
-	}
-
-	VR<bool> cut(N, false);
-	auto contrib = [&](LL i) {
-		LL j = i == N - 1 ? 0 : i + 1;
-		return cut[i] || cut[j] ? 0 : 1;
-	};
-	while (!pq.empty()) {
-		LL i = pq.top().second, j = i == 0 ? N - 1 : i - 1;
-		pq.pop();
-		LL real = cut[i] ? -A[i] : A[i];
-		real -= contrib(i) * B[i] + contrib(j) * B[j];
-		cut[i] = !cut[i];
-		real += contrib(i) * B[i] + contrib(j) * B[j];
-		cut[i] = !cut[i];
-		if (real < 0) {
-			cur += real;
-			cut[i] = !cut[i];
-
-			LL k = i;
-			j = k == 0 ? N - 1 : k - 1;
-			LL next = cut[k] ? -A[k] : A[k];
-			next -= contrib(k) * B[k] + contrib(j) * B[j];
-			cut[k] = !cut[k];
-			next += contrib(k) * B[k] + contrib(j) * B[j];
-			cut[k] = !cut[k];
-			if (next < 0) {
-				pq.push({-next, k});
+			bool done = false;
+			RF(j, 10 - i, 10) {
+				if (c1[j] > 0) {
+					c1[j]--;
+					t1--;
+					fc.push_back({j, i});
+					done = true;
+					break;
+				}
 			}
-
-			k = i == 0 ? N - 1 : i - 1;
-			j = k == 0 ? N - 1 : k - 1;
-			next = cut[k] ? -A[k] : A[k];
-			next -= contrib(k) * B[k] + contrib(j) * B[j];
-			cut[k] = !cut[k];
-			next += contrib(k) * B[k] + contrib(j) * B[j];
-			cut[k] = !cut[k];
-			if (next < 0) {
-				pq.push({-next, k});
-			}
-
-			k = i == N - 1 ? 0 : i + 1;
-			j = k == 0 ? N - 1 : k - 1;
-			next = cut[k] ? -A[k] : A[k];
-			next -= contrib(k) * B[k] + contrib(j) * B[j];
-			cut[k] = !cut[k];
-			next += contrib(k) * B[k] + contrib(j) * B[j];
-			cut[k] = !cut[k];
-			if (next < 0) {
-				pq.push({-next, k});
+			if (!done) {
+				nc2.push_back(i);
 			}
 		}
 	}
-	cout << cur;
+
+	while (!nc2.empty()) {
+		c2[nc2.back()]++;
+		nc2.pop_back();
+		t2++;
+	}
+
+	LL p1s = 1, p2s = 1;
+	while (t1 > 0) {
+		while (c1[p1s] == 0) {
+			p1s++;
+		}
+		while (c2[p2s] == 0) {
+			p2s++;
+		}
+		c1[p1s]--;
+		c2[p2s]--;
+		t1--;
+		t2--;
+		nc.push_back({p1s, p2s});
+	}
+
+	if (fc.empty() && !mc.empty()) {
+		i = 1;
+		while (i < 10 && fc.empty()) {
+			if (c2[i] > 0 && mc.front().first + i >= 10) {
+				c2[mc.front().second]++;
+				c2[i]--;
+				mc.front().second = i;
+				swap(mc.front(), mc.back());
+				fc.push_back(mc.back());
+				mc.pop_back();
+			} else {
+				i++;
+			}
+		}
+	}
+
+	if (fc.empty() && mc.size() >= 2 && mc.front().first > mc.back().first) {
+		swap(mc.front().second, mc.back().second);
+		nc.push_back(mc.back());
+		mc.pop_back();
+		swap(mc.front(), mc.back());
+		fc.push_back(mc.back());
+		mc.pop_back();
+	}
+
+	string o1, o2;
+	RF(i, 0, nc.size()) {
+		o1.push_back(nc[i].first + '0');
+		o2.push_back(nc[i].second + '0');
+	}
+	RF(i, 0, fc.size()) {
+		o1.push_back(fc[i].first + '0');
+		o2.push_back(fc[i].second + '0');
+	}
+	RF(i, 0, mc.size()) {
+		o1.push_back(mc[i].first + '0');
+		o2.push_back(mc[i].second + '0');
+	}
+	RF(i, 9, 0) {
+		RF(j, 0, c2[i]) { o2.push_back(i + '0'); }
+	}
+	reverse(o1.begin(), o1.end());
+	reverse(o2.begin(), o2.end());
+	if (swapped) {
+		swap(o1, o2);
+	}
+	cout << o1 << '\n' << o2;
 
 	return 0;
 }
