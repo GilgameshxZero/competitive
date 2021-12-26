@@ -1,5 +1,10 @@
 // C++ template for coding competitions designed for C++11 support.
 
+// GCC-specific optimizations.
+#pragma GCC target("avx2")
+#pragma GCC optimize("Ofast")
+#pragma GCC optimize("unroll-loops")
+
 // Disable security/deprecation warnings on MSVC++.
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
