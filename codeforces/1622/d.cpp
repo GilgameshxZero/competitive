@@ -656,12 +656,11 @@ LL mp(LL b, LL p) {
 int main(int argc, char const *argv[]) {
 	RF(i, 0, 5001) { mdiv[i] = mp(i, MOD - 2); }
 	RF(i, 0, 5001) {
-		binom[0][i] = 0;
 		binom[i][0] = 1;
-		binom[i][1] = i;
+		binom[0][i] = 0;
 	}
 	RF(i, 1, 5001) {
-		RF(j, 2, 5001) {
+		RF(j, 1, 5001) {
 			if (j > i) {
 				binom[i][j] = 0;
 			} else {
@@ -687,6 +686,14 @@ int main(int argc, char const *argv[]) {
 		}
 	}
 	S.pop_back();
+	if (K == 0) {
+		cout << 1;
+		return 0;
+	}
+	if (K >= runs.size()) {
+		cout << 1;
+		return 0;
+	}
 
 	LL ans = 0;
 	RF(i, 0, runs.size() - K) {
@@ -694,15 +701,12 @@ int main(int argc, char const *argv[]) {
 		RF(j, i, i + K + 1) { run += runs[j]; }
 		ans += binom[run + K][K];
 		LL sum = 0;
-		RF(j, i, i + K) {
-			sum += runs[j];
-			if (j < K) {
-				continue;
-			}
-			ans -= binom[sum + j - i][j - i];
+		RF(j, max(i, K), i + K) { sum += runs[j]; }
+		if (i > 0) {
+			ans -= binom[sum + K - 1][K - 1];
 		}
 	}
-	cout << ans % MOD << '\n';
+	cout << ans % MOD;
 
 	return 0;
 }
