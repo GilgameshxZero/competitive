@@ -137,7 +137,8 @@ short const MAX_N = 5000;
 AR<AR<short, MAX_N>, MAX_N> L, U, &L_ = L, &U_ = U, R__, &R_ = L;
 AR<string, MAX_N> G;
 AR<short, MAX_N> S__;
-AR<list<short>, MAX_N + 1> R__radix;
+AR<short, MAX_N + 1> radix;
+AR<short, MAX_N> rnext;
 
 int main(int argc, char const *argv[]) {
 	short N;
@@ -177,7 +178,8 @@ int main(int argc, char const *argv[]) {
 	RF(D, -(N - 1), N) {
 		auto S_ = DisjointSetUnion(N);
 		RF(i, 0, N) { S__[i] = i; }
-		RF(i, 0, N) { R__radix[i] = {}; }
+		memset(&radix[0], -1, sizeof(short) * (N + 1));
+		memset(&rnext[0], -1, sizeof(short) * N);
 
 		// Radix sort R'' on D.
 		RF(i, N - 1, -1) {
@@ -185,7 +187,10 @@ int main(int argc, char const *argv[]) {
 			if (j < 0 || j >= N) {
 				continue;
 			}
-			R__radix[1 - R__[i][j]].push_back(i);
+			if (radix[1 - R__[i][j]] != -1) {
+				rnext[i] = radix[1 - R__[i][j]];
+			}
+			radix[1 - R__[i][j]] = i;
 		}
 
 		RF(i, N - 1, -1) {
@@ -197,8 +202,8 @@ int main(int argc, char const *argv[]) {
 			auto t = 1 - i, t_ = R_[i][j] + i - 1;
 
 			// All R'' on D less than t must be joined in S'.
-			while (!R__radix[2 - t].empty()) {
-				auto i_ = R__radix[2 - t].back();
+			short i_ = radix[2 - t];
+			while (i_ != -1) {
 				if (i_ > 0) {
 					auto g = S__[S_.find(i_ - 1)];
 					S_.join(i_, i_ - 1);
@@ -209,7 +214,7 @@ int main(int argc, char const *argv[]) {
 					// Pseudo-join the first corner by setting its answer to negative.
 					S__[S_.find(i_)] = -1;
 				}
-				R__radix[2 - t].pop_back();
+				i_ = rnext[i_];
 			}
 
 			// Update ans.

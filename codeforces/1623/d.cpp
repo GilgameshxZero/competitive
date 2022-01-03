@@ -641,6 +641,7 @@ using namespace std;
 LL MOD = 1000000007;
 
 LL modPow(LL b, LL p) {
+	b %= MOD;
 	if (p == 0) {
 		return 1;
 	}
@@ -663,8 +664,8 @@ int main(int argc, char const *argv[]) {
 			 q = (100 - P) * modPow(100, MOD - 2) % MOD;
 		AR<LL, 2> Ts;
 		if (r != N && c != M) {
-			LL delr = N - r, delc = M - c,
-				 del = min(delr, delc), nextr = r + del, nextc = c + del;
+			LL delr = N - r, delc = M - c, del = min(delr, delc), nextr = r + del,
+				 nextc = c + del;
 			LL cTs = 0;
 			if (r <= RD && nextr > RD) {
 				Ts[cTs++] = RD - r;
@@ -679,7 +680,7 @@ int main(int argc, char const *argv[]) {
 				swap(Ts[0], Ts[1]);
 			}
 			RF(i, 0, cTs) {
-				ans = (ans + p * Ts[i] % MOD) % MOD;
+				ans = (ans + p * modPow(q, H0) % MOD * Ts[i] % MOD) % MOD;
 				H0++;
 			}
 			L0 = del;
@@ -689,19 +690,21 @@ int main(int argc, char const *argv[]) {
 
 		LL H1 = 0, L1 = 0, cans = 0, cr = r, cc = c, ir = 1, ic = 1,
 			 pmq = modPow(q, H0);
+		if (r == 1) {
+			ir = 1;
+		}
+		if (r == N) {
+			ir = -1;
+		}
+		if (c == 1) {
+			ic = 1;
+		}
+		if (c == M) {
+			ic = -1;
+		}
+		LL iir = ir, iic = ic;
+
 		do {
-			if (r == 1) {
-				ir = 1;
-			}
-			if (r == N) {
-				ir = -1;
-			}
-			if (c == 1) {
-				ic = 1;
-			}
-			if (c == M) {
-				ic = -1;
-			}
 			LL delr = ir == 1 ? N - r : r - 1, delc = ic == 1 ? M - c : c - 1,
 				 del = min(delr, delc), nextr = r + ir * del, nextc = c + ic * del;
 			LL cTs = 0;
@@ -731,10 +734,23 @@ int main(int argc, char const *argv[]) {
 			L1 += del;
 			r = nextr;
 			c = nextc;
-		} while (r != cr || c != cc || ir != 1 || ic != 1);
+			if (r == 1) {
+				ir = 1;
+			}
+			if (r == N) {
+				ir = -1;
+			}
+			if (c == 1) {
+				ic = 1;
+			}
+			if (c == M) {
+				ic = -1;
+			}
+		} while (r != cr || c != cc || ir != iir || ic != iic);
 
 		LL G = modPow((1 + MOD - modPow(q, H1)) % MOD, MOD - 2);
-		LL X = (1 + MOD - modPow(q, H1)) % MOD * modPow(1 + MOD - q, MOD - 2) % MOD;
+		LL X = (1 + MOD - modPow(q, H1)) % MOD *
+			modPow((1 + MOD - q) % MOD, MOD - 2) % MOD;
 
 		// LL A = 1 * 3 * modPow(16, MOD - 2) + 2 * 9 * modPow(64, MOD - 2);
 		// A %= MOD;
@@ -744,11 +760,10 @@ int main(int argc, char const *argv[]) {
 		// LL b = cans * modPow(q, H1) + p * modPow(q, H0 + H1) % MOD * L1 % MOD *
 		// X; b %= MOD; assert(B == b);
 
-		LL G2 = modPow((1 + MOD - modPow(q, H1)) % MOD, MOD - 2) * G % MOD;
+		LL G2 = G * G % MOD;
 		LL fans = ans + cans * G % MOD +
 			p * modPow(q, H0 + H1) % MOD * L1 % MOD * X % MOD * G2 % MOD;
-		fans %= MOD;
-		cout << fans << '\n';
+		cout << fans % MOD << '\n';
 	}
 
 	return 0;

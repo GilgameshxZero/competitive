@@ -634,6 +634,7 @@ using namespace std;
 /* ---------------------------- End of template. ---------------------------- */
 char board[2002][2002];
 int best[2002][2002];
+VR<PR<int, int>> s;
 
 int main(int argc, char const *argv[]) {
 	short T;
@@ -641,24 +642,24 @@ int main(int argc, char const *argv[]) {
 	while (T--) {
 		short R, C;
 		cin >> R >> C;
-		char tmp;
 		cin.getline(board[1] + 1, 2);
-		memset(best, 0, sizeof(best));
+		memset(best[0], 0, (C + 2) * sizeof(int));
 		RF(i, 1, R + 1) {
 			cin.getline(board[i] + 1, C + 1);
+			best[i][0] = best[i][C + 1] = 0;
 			memset(best[i] + 1, -1, C * sizeof(int));
 		}
+		memset(best[R + 1], 0, (C + 2) * sizeof(int));
 
 		PR<int, int> ans;
 		RF(i, 1, R + 1) {
 			RF(j, 1, C + 1) {
 				if (best[i][j] == -1) {
 					int prev = -1;
-					stack<PR<int, int>> s;
-					s.push({i, j});
+					s.push_back({i, j});
 					PR<int, int> retracing;
 					while (!s.empty()) {
-						auto f = s.top();
+						auto f = s.back();
 
 						PR<int, int> next;
 						switch (board[f.first][f.second]) {
@@ -677,17 +678,17 @@ int main(int argc, char const *argv[]) {
 						}
 
 						if (best[next.first][next.second] >= 0) {
-							s.pop();
+							s.pop_back();
 							if (retracing.first == 0) {
 								best[f.first][f.second] = best[next.first][next.second] + 1;
 							} else {
 								best[f.first][f.second] = best[next.first][next.second];
 							}
 						} else if (best[next.first][next.second] == -1) {
-							s.push(next);
+							s.push_back(next);
 							best[f.first][f.second] = --prev;
 						} else {
-							s.pop();
+							s.pop_back();
 							best[f.first][f.second] =
 								best[next.first][next.second] - prev + 2;
 							retracing = next;

@@ -387,8 +387,8 @@ inline std::pair<std::size_t, std::size_t> kmpSearch(
 // Fixed-size Fenwick/Binary-Indexed Tree implementation. O(ln N) point
 // updates and range queries. Not thread-safe.
 //
-// Value must support adding and subtracting, and should be lightly copyable.
-// In addition, default initialization should be equivalent to "0".
+// Value must support commutative addition. In addition, default
+// initialization should be equivalent to "empty".
 template <typename Value = long long>
 class FenwickTree {
 	private:
@@ -396,11 +396,10 @@ class FenwickTree {
 
 	public:
 	// Creates a Fenwick tree, which may be resized by operations.
-	FenwickTree(std::size_t const size = 0) : tree(size) {}
+	FenwickTree(std::size_t const size) : tree(size) {}
 
 	// Computes prefix sum up to and including idx.
-	Value sum(std::size_t const idx) {
-		this->reserve(idx + 1);
+	Value sum(std::size_t const idx) const {
 		Value aggregate{};
 		for (std::size_t i = idx; i != SIZE_MAX; i &= i + 1, i--) {
 			aggregate += this->tree[i];
@@ -408,36 +407,10 @@ class FenwickTree {
 		return aggregate;
 	}
 
-	// Returns the value at index.
-	Value get(std::size_t const idx) {
-		return this->sum(idx) - this->sum(idx - 1);
-	}
-
 	// Modify index by a delta.
 	void modify(std::size_t const idx, Value const &delta) {
-		this->reserve(idx + 1);
 		for (std::size_t i = idx; i < this->tree.size(); i |= i + 1) {
 			this->tree[i] += delta;
-		}
-	}
-
-	// Set index to a value.
-	void set(std::size_t const idx, Value const &value) {
-		this->modify(idx, value - this->get(idx));
-	}
-
-	private:
-	// Expand the Fenwick tree in O(delta * ln N) with default-initialized
-	// Values.
-	void reserve(std::size_t const size) {
-		while (this->tree.size() < size) {
-			this->tree.push_back({});
-
-			// Sum up the segment for i.
-			std::size_t i = this->tree.size() - 1, k = (i & (i + 1)) - 1;
-			for (std::size_t j = i - 1; j != k; j &= j + 1, j--) {
-				this->tree.back() += this->tree[j];
-			}
 		}
 	}
 };
@@ -450,6 +423,12 @@ class FenwickTree {
 //
 // Index 0 is unused. For parent i, 2i is the left child and 2i + 1 is the
 // right child.
+//
+// Further performance can be had with manual inlining of the five functions,
+// which are typically not inlined by the compiler due to their virtual-ness.
+// Forced initialization of underlying vectors can be replaced with
+// std::array, and on GCC, loop unrolling may be turned on for further
+// optimization.
 template <typename _Value, typename _Update, typename _Result = _Value>
 class SegmentTree {
 	protected:
@@ -466,16 +445,8 @@ class SegmentTree {
 	// Lazily-stored updates.
 	std::vector<Update> updates;
 
-	public:
-	// Segment tree for a segment array of size size.
-	SegmentTree(std::size_t const size)
-			: values(1_zu << (mostSignificant1BitIdx(size - 1) + 2)),
-				lazy(values.size(), false),
-				updates(values.size()) {}
-
-	protected:
 	// Aggregate values from two children while retracing an update. Aggregating
-	// with a default-initialized Value should do nothing.
+	// with a default-initialized Value or Update should do nothing.
 	virtual void aggregate(
 		std::size_t const node,
 		typename std::vector<Value>::reference value,
@@ -511,6 +482,12 @@ class SegmentTree {
 		std::pair<std::size_t, std::size_t> const &range) = 0;
 
 	public:
+	// Segment tree for a segment array of size size.
+	SegmentTree(std::size_t const size)
+			: values(1_zu << (mostSignificant1BitIdx(size - 1) + 2)),
+				lazy(values.size(), false),
+				updates(values.size()) {}
+
 	// Queries a range, propagating if necessary then aggregating.
 	Result query(std::size_t const left, std::size_t const right) {
 		return this->query(1, left, right, {0, this->values.size() / 2 - 1});
@@ -534,7 +511,8 @@ class SegmentTree {
 			return;
 		}
 
-		// Propagating on a leaf applies it immediately.
+		// Propagating on a leaf applies it immediately. Otherwise, split the
+		// update to children.
 		if (node < this->values.size() / 2) {
 			this->lazy[node * 2] = this->lazy[node * 2 + 1] = true;
 			this->split(
@@ -616,6 +594,41 @@ class SegmentTree {
 	}
 };
 
+// Union-Find/Disjoint-Set-Union implementation. Near-constant time amortized
+// union and find.
+//
+// Implements path compression and union by rank.
+class DisjointSetUnion {
+	private:
+	// A pair of (is_root, X). If node is root, X stores the size of the
+	// cluster. Otherwise, X stores the index of the node’s parent.
+	mutable std::vector<std::pair<bool, std::size_t>> nodes;
+
+	public:
+	DisjointSetUnion(std::size_t const size) : nodes(size, {true, 1}) {}
+
+	std::size_t find(std::size_t const i) const {
+		if (this->nodes[i].first) {
+			return i;
+		}
+		return this->nodes[i].second = this->find(this->nodes[i].second);
+	}
+	std::size_t rank(std::size_t const i) const {
+		return this->nodes[this->find(i)].second;
+	}
+	void join(std::size_t const i, std::size_t const j) {
+		std::size_t pI = this->find(i), pJ = this->find(j);
+		if (pI == pJ) {
+			return;
+		}
+		if (this->nodes[pI].second > this->nodes[pJ].second) {
+			std::swap(pI, pJ);
+		}
+		this->nodes[pJ].second += this->nodes[pI].second;
+		this->nodes[pI] = {false, pJ};
+	}
+};
+
 // Shorthand for common types.
 using ZU = std::size_t;
 using LL = long long;
@@ -638,74 +651,10 @@ using namespace std;
 
 /* ---------------------------- End of template. ---------------------------- */
 
-LL MOD = 998244353;
-AR<LL, 5001> mdiv;
-AR<AR<LL, 5001>, 5001> binom;
-
-LL mp(LL b, LL p) {
-	if (p == 0) {
-		return 1;
-	}
-	LL ans = mp(b, p / 2);
-	if (p % 2 == 0) {
-		return ans * ans % MOD;
-	}
-	return ans * ans % MOD * b % MOD;
-}
-
 int main(int argc, char const *argv[]) {
-	RF(i, 0, 5001) { mdiv[i] = mp(i, MOD - 2); }
-	RF(i, 0, 5001) {
-		binom[0][i] = 0;
-		binom[i][0] = 1;
-	}
-	RF(i, 1, 5001) {
-		RF(j, 1, 5001) {
-			if (j > i) {
-				binom[i][j] = 0;
-			} else {
-				binom[i][j] = binom[i][j - 1] * (i - j + 1) % MOD * mdiv[j] % MOD;
-			}
-		}
-	}
-	// RF(i, 0, 5001) { cout << binom[i][3] << '\n'; }
-
-	LL N, K;
-	cin >> N >> K;
-	string S;
-	cin >> S;
-	VR<LL> runs;
-	LL cur = 0;
-	S.push_back('1');
-	RF(i, 0, S.length()) {
-		if (S[i] == '1') {
-			runs.push_back(cur);
-			cur = 0;
-		} else {
-			cur++;
-		}
-	}
-	S.pop_back();
-	if (K == 0) {
-		cout << 1;
-		return 0;
-	}
-	if (K >= runs.size()) {
-		cout << 1;
-		return 0;
-	}
-
-	LL ans = 0;
-	RF(i, 0, runs.size() - K) {
-		LL run = 0;
-		RF(j, i, i + K + 1) { run += runs[j]; }
-		ans += binom[run + K][K];
-		ans %= MOD;
-		if (i > 0) {
-			ans = (ans + MOD - binom[run - runs[i + K] + K - 1][K - 1]) % MOD;
-		}
-	}
-	cout << ans % MOD;
+	LL N;
+	cin >> N;
+	cout << (N >= 4 && N % 2 == 0 ? "YES" : "NO");
 
 	return 0;
 }
