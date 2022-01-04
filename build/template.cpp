@@ -1,15 +1,15 @@
 // C++ template for coding competitions designed for C++11 support.
 
-// GCC-specific optimizations.
-#pragma GCC target("avx2")
-#pragma GCC optimize("Ofast")
-#pragma GCC optimize("unroll-loops")
-
-// Disable security/deprecation warnings on MSVC++.
+// Disable security/deprecation warnings on MSVC++ for freopen.
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+// GCC-specific optimizations.
+#pragma GCC target("avx2", "bmi", "bmi2", "popcnt", "lzcnt")
+#pragma GCC optimize("Ofast", "unroll-loops")
+
+// Unfortunately MSVC does not support bits/stc++.h.
 #include <algorithm>
 #include <array>
 #include <atomic>
@@ -59,7 +59,7 @@ std::regex operator"" _re(char const *value, std::size_t) {
 	return std::regex(value);
 }
 
-// Fast I/O setup and utilities.
+// "Fast" I/O setup and utilities.
 class IO {
 	public:
 	IO() {
@@ -629,6 +629,129 @@ class DisjointSetUnion {
 	}
 };
 
+// Implementation for a prime modulus ring over the integers, supporting basic
+// operations add, subtract, multiply in O(1) and divide in O(ln N).
+//
+// Integer must be large enough to store (primeModulus - 1)^2.
+//
+// For O(1) division, cache multiplicative inverses and multiply with those.
+template <typename Integer, Integer primeModulus>
+class ModRing {
+	public:
+	Integer value;
+
+	// Add primeModulus first to wrap back around in the case of "negative"
+	// unsigned Integer.
+	ModRing(Integer value = 0) : value((primeModulus + value) % primeModulus) {}
+
+	// O(ln N) exponentiation.
+	static ModRing<Integer, primeModulus> power(
+		ModRing<Integer, primeModulus> base,
+		Integer exponent) {
+		if (exponent == 0) {
+			return {1};
+		}
+		auto half = power(base, exponent / 2);
+		if (exponent % 2 == 0) {
+			return half * half;
+		} else {
+			return half * half * base;
+		}
+	}
+
+	ModRing<Integer, primeModulus> operator+(Integer other) {
+		return *this + ModRing<Integer, primeModulus>(other);
+	}
+	ModRing<Integer, primeModulus> operator+(
+		ModRing<Integer, primeModulus> other) {
+		return {this->value + other.value};
+	}
+	ModRing<Integer, primeModulus> operator+=(
+		ModRing<Integer, primeModulus> other) {
+		return *this = *this + other;
+	}
+	ModRing<Integer, primeModulus> operator++() { return *this += 1; }
+	ModRing<Integer, primeModulus> operator++(int) {
+		auto tmp(*this);
+		*this += 1;
+		return tmp;
+	}
+	ModRing<Integer, primeModulus> operator-(Integer other) {
+		return *this - ModRing<Integer, primeModulus>(other);
+	}
+	ModRing<Integer, primeModulus> operator-(
+		ModRing<Integer, primeModulus> other) {
+		return {this->value - other.value};
+	}
+	ModRing<Integer, primeModulus> operator-=(
+		ModRing<Integer, primeModulus> other) {
+		return *this = *this - other;
+	}
+	ModRing<Integer, primeModulus> operator--() { return *this -= 1; }
+	ModRing<Integer, primeModulus> operator--(int) {
+		auto tmp(*this);
+		*this -= 1;
+		return tmp;
+	}
+	ModRing<Integer, primeModulus> operator*(Integer other) {
+		return *this * ModRing<Integer, primeModulus>(other);
+	}
+	ModRing<Integer, primeModulus> operator*(
+		ModRing<Integer, primeModulus> other) {
+		return {this->value * other.value};
+	}
+	ModRing<Integer, primeModulus> operator*=(
+		ModRing<Integer, primeModulus> other) {
+		return *this = *this * other;
+	}
+	ModRing<Integer, primeModulus> operator/(Integer other) {
+		return *this / ModRing<Integer, primeModulus>(other);
+	}
+	ModRing<Integer, primeModulus> operator/(
+		ModRing<Integer, primeModulus> other) {
+		return *this * power(other, primeModulus - 2);
+	}
+	ModRing<Integer, primeModulus> operator/=(
+		ModRing<Integer, primeModulus> other) {
+		return *this = *this / other;
+	}
+
+	bool operator==(Integer other) {
+		return *this == ModRing<Integer, primeModulus>(other);
+	}
+	bool operator==(ModRing<Integer, primeModulus> other) {
+		return this->value == other.value;
+	}
+};
+
+template <typename LeftInteger, typename Integer, Integer primeModulus>
+ModRing<Integer, primeModulus> operator+(
+	LeftInteger left,
+	ModRing<Integer, primeModulus> right) {
+	return ModRing<Integer, primeModulus>(left) + right;
+}
+
+template <typename LeftInteger, typename Integer, Integer primeModulus>
+ModRing<Integer, primeModulus> operator-(
+	LeftInteger left,
+	ModRing<Integer, primeModulus> right) {
+	return ModRing<Integer, primeModulus>(left) - right;
+}
+
+template <typename LeftInteger, typename Integer, Integer primeModulus>
+ModRing<Integer, primeModulus> operator*(
+	LeftInteger left,
+	ModRing<Integer, primeModulus> right) {
+	return ModRing<Integer, primeModulus>(left) * right;
+}
+
+template <typename LeftInteger, typename Integer, Integer primeModulus>
+ModRing<Integer, primeModulus> operator/(
+	LeftInteger left,
+	ModRing<Integer, primeModulus> right) {
+	return ModRing<Integer, primeModulus>(left) / right;
+}
+
 // Shorthand for common types.
 using ZU = std::size_t;
 using LL = long long;
@@ -651,7 +774,7 @@ using namespace std;
 
 /* ---------------------------- End of template. ---------------------------- */
 
-int main(int argc, char const *argv[]) {
+int main(int, char const *[]) {
 	LL T;
 	cin >> T;
 	while (T--) {
