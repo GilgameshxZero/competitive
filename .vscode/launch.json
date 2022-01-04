@@ -9,7 +9,7 @@
 			"args": [],
 			"stopAtEntry": false,
 			"cwd": "${workspaceFolder}/bin",
-			"console": "integratedTerminal",
+			"externalConsole": false,
 			"preLaunchTask": "build-debug-x64",
 			"MIMode": "gdb",
 
@@ -24,7 +24,7 @@
 			"args": [],
 			"stopAtEntry": false,
 			"cwd": "${workspaceFolder}/bin",
-			"console": "integratedTerminal",
+			"externalConsole": false,
 			"preLaunchTask": "build-release-x64",
 			"MIMode": "gdb",
 
