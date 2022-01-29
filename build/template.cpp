@@ -766,7 +766,7 @@ using AR = std::array<Type, Size>;
 
 // Shorthand for loop in range [from, to).
 #define RF(x, from, to) \
-	for (long long x = from, _rfDir = from < to ? 1 : -1; x != to; x += _rfDir)
+	for (long long x = from, rfDir = from < to ? 1 : -1; x != to; x += rfDir)
 
 // Imports std scope into global scope; care for name conflicts. Also imports
 // literals in std::literals.
