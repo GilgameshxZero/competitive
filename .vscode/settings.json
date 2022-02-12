@@ -17,7 +17,5 @@
 	"[cpp]": {
 		"editor.defaultFormatter": "ms-vscode.cpptools",
 		"editor.wordWrap": "on"
-	},
-
-	"markdown.styles": []
+	}
 }

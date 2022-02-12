@@ -81,8 +81,6 @@ LINKER_FLAGS = $(LINKER_FLAGS_COMMON) $(LINKER_FLAGS_DEBUG)
 # Default/build target only compiles and links, but does not run.
 _default: build
 build: $(PROJECT_BIN)
-# Build, but don't increment the versioning header.
-dist: $(PROJECT_BIN)
 # Build and run.
 run: build
 	@CD $(BIN_DIR) && $(PROJECT_BIN) $(ARGUMENTS)
@@ -92,6 +90,7 @@ clean:
 	@IF EXIST $(OBJ_DIR) RD /Q /S $(OBJ_DIR)
 	@MD $(BIN_DIR)
 	@TYPE NUL > $(BIN_DIR)in.txt
+	@TYPE NUL > $(BIN_DIR)out.txt
 
 # Build target.
 # Define special macro to enable double-substitution.
@@ -166,10 +165,9 @@ PROJECT_OBJS := $(addprefix $(PROJECT_OBJ_DIR), $(addsuffix .o,\
 .SECONDARY: $(PROJECT_BIN) $(PROJECT_OBJS)
 
 # Ensure files with the same name as fake targets do not trigger.
-.PHONY: __default _default build dist run clean increment
+.PHONY: __default _default build run clean
 _default: build
 build: $(PROJECT_BIN)
-dist: $(PROJECT_BIN)
 run: build
 	@cd $(BIN_DIR) && ./$(PROJECT_BIN) $(ARGUMENTS)
 # Clean, but recreate in.txt file.
@@ -177,6 +175,7 @@ clean:
 	@rm -rf $(OBJ_DIR) $(BIN_DIR)
 	@mkdir -p $(BIN_DIR)
 	@touch $(BIN_DIR)in.txt
+	@touch $(BIN_DIR)out.txt
 
 # Link rule.
 $(PROJECT_BIN): $(BIN_DIR)% : $(PROJECT_OBJS)
