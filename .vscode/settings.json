@@ -8,8 +8,7 @@
 	"files.insertFinalNewline": true,
 	"files.eol": "\n",
 	"files.associations": {
-		"settings.json.DEFAULT": "jsonc",
-		"*.vstemplate": "xml"
+		"settings.json.DEFAULT": "jsonc"
 	},
 
 	"C_Cpp.default.cppStandard": "c++17",

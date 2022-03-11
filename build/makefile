@@ -38,8 +38,8 @@ SOURCES = *.cpp
 # For the repository, executable filename is not the project name.
 BIN = $(PROJECT)
 !ENDIF
-PROJECT_BIN = $(BIN_DIR)$(BIN).exe
-PROJECT_BIN_DIR = $(BIN_DIR)$(BIN)\..^\
+PROJECT_BIN = $(BIN_DIR)$(PROJECT)\$(BIN).exe
+PROJECT_BIN_DIR = $(BIN_DIR)$(PROJECT)^\
 
 COMPILER = cl /c
 COMPILER_FLAGS_INCLUDES =
@@ -88,9 +88,9 @@ run: build
 clean:
 	@IF EXIST $(BIN_DIR) RD /Q /S $(BIN_DIR)
 	@IF EXIST $(OBJ_DIR) RD /Q /S $(OBJ_DIR)
-	@MD $(BIN_DIR)
-	@TYPE NUL > $(BIN_DIR)in.txt
-	@TYPE NUL > $(BIN_DIR)out.txt
+	@DEL i.*.txt o.*.txt
+	@TYPE NUL > i.default.txt
+	@TYPE NUL > o.default.txt
 
 # Build target.
 # Define special macro to enable double-substitution.
@@ -118,8 +118,8 @@ PROJECT_OBJ_DIR := $(OBJ_DIR)$(PROJECT)/
 PROJECT_SRC_DIR := $(ROOT_DIR)$(PROJECT)/
 SOURCES ?= *.cpp
 BIN ?= $(PROJECT)
-PROJECT_BIN := $(BIN_DIR)$(BIN)
-PROJECT_BIN_DIR := $(BIN_DIR)$(BIN)/../
+PROJECT_BIN := $(BIN_DIR)$(PROJECT)/$(BIN)
+PROJECT_BIN_DIR := $(BIN_DIR)$(PROJECT)/
 
 COMPILER ?= clang++
 COMPILER_FLAGS_INCLUDES :=
@@ -172,10 +172,8 @@ run: build
 	@cd $(BIN_DIR) && ./$(PROJECT_BIN) $(ARGUMENTS)
 # Clean, but recreate in.txt file.
 clean:
-	@rm -rf $(OBJ_DIR) $(BIN_DIR)
-	@mkdir -p $(BIN_DIR)
-	@touch $(BIN_DIR)in.txt
-	@touch $(BIN_DIR)out.txt
+	@rm -rf $(OBJ_DIR) $(BIN_DIR) i.*.txt o.*.txt
+	@touch i.default.txt o.default.txt
 
 # Link rule.
 $(PROJECT_BIN): $(BIN_DIR)% : $(PROJECT_OBJS)

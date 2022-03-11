@@ -1,31 +1,85 @@
+// `interactive` configurations are broken on MacOS because `lldb` does not allow integratedTerminal input within VSCode.
+// `piped` configurations are also broken on MacOS, because the pipes for standard I/O do not cooperate with `lldb` options. Thus, this is patched at the code level with `std::freopen`.
 {
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "debug-x64",
+			"name": "debug-x64-piped",
 			"type": "cppdbg",
 			"request": "launch",
-			"program": "${workspaceFolder}/bin/${fileBasenameNoExtension}",
-			"args": [],
-			"stopAtEntry": false,
-			"cwd": "${workspaceFolder}/bin",
-			"externalConsole": false,
 			"preLaunchTask": "build-debug-x64",
+			"program": "${workspaceFolder}${pathSeparator}bin${pathSeparator}${relativeFileDirname}${pathSeparator}${fileBasenameNoExtension}",
+			"cwd": "${workspaceFolder}${pathSeparator}bin",
+			"args": [
+				"<",
+				"${workspaceFolder}${pathSeparator}build${pathSeparator}i.default.txt",
+				">",
+				"${workspaceFolder}${pathSeparator}build${pathSeparator}o.default.txt"
+			],
+			"console": "integratedTerminal",
+			"externalConsole": false,
+			"stopAtEntry": false,
+			"MIMode": "gdb",
+
+			"windows": { "type": "cppvsdbg" },
+			"osx": {
+				"MIMode": "lldb",
+				"args": [
+					"<",
+					"${workspaceFolder}${pathSeparator}build${pathSeparator}i.default.txt",
+					">",
+					"${workspaceFolder}${pathSeparator}build${pathSeparator}o.default.txt"
+				]
+			}
+		},
+		{
+			"name": "debug-x64-interactive",
+			"type": "cppdbg",
+			"request": "launch",
+			"preLaunchTask": "build-debug-x64",
+			"program": "${workspaceFolder}${pathSeparator}bin${pathSeparator}${relativeFileDirname}${pathSeparator}${fileBasenameNoExtension}",
+			"cwd": "${workspaceFolder}${pathSeparator}bin",
+			"args": [],
+			"console": "integratedTerminal",
+			"externalConsole": false,
+			"stopAtEntry": false,
 			"MIMode": "gdb",
 
 			"windows": { "type": "cppvsdbg" },
 			"osx": { "MIMode": "lldb" }
 		},
 		{
-			"name": "release-x64",
+			"name": "release-x64-piped",
 			"type": "cppdbg",
 			"request": "launch",
-			"program": "${workspaceFolder}/bin/${fileBasenameNoExtension}",
-			"args": [],
-			"stopAtEntry": false,
-			"cwd": "${workspaceFolder}/bin",
-			"externalConsole": false,
 			"preLaunchTask": "build-release-x64",
+			"program": "${workspaceFolder}${pathSeparator}bin${pathSeparator}${relativeFileDirname}${pathSeparator}${fileBasenameNoExtension}",
+			"cwd": "${workspaceFolder}${pathSeparator}bin",
+			"args": [
+				"<",
+				"${workspaceFolder}${pathSeparator}build${pathSeparator}i.default.txt",
+				">",
+				"${workspaceFolder}${pathSeparator}build${pathSeparator}o.default.txt"
+			],
+			"console": "internalTerminal",
+			"externalConsole": false,
+			"stopAtEntry": false,
+			"MIMode": "gdb",
+
+			"windows": { "type": "cppvsdbg" },
+			"osx": { "MIMode": "lldb" }
+		},
+		{
+			"name": "release-x64-interactive",
+			"type": "cppdbg",
+			"request": "launch",
+			"preLaunchTask": "build-release-x64",
+			"program": "${workspaceFolder}${pathSeparator}bin${pathSeparator}${relativeFileDirname}${pathSeparator}${fileBasenameNoExtension}",
+			"cwd": "${workspaceFolder}${pathSeparator}bin",
+			"args": [],
+			"console": "internalTerminal",
+			"externalConsole": false,
+			"stopAtEntry": false,
 			"MIMode": "gdb",
 
 			"windows": { "type": "cppvsdbg" },

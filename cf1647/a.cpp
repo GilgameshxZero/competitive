@@ -786,6 +786,20 @@ int main(int, char const *[]) {
 	LL T;
 	cin >> T;
 	while (T--) {
+		LL N;
+		cin >> N;
+		LL first = N % 3;
+		if (first != 0) {
+			cout << first;
+			N -= first;
+		} else {
+			first = 1;
+		}
+		while (N > 0) {
+			cout << 3 - first << first;
+			N -= 3;
+		}
+		cout << '\n';
 	}
 
 	return 0;

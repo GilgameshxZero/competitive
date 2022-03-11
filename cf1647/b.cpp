@@ -782,10 +782,63 @@ using namespace std;
 
 /* ---------------------------- End of template. ---------------------------- */
 
+LL flood(VR<string> &grid, LL si, LL sj, PR<LL, LL> &ul, PR<LL, LL> &br) {
+	LL res{1};
+	if (si > 0 && grid[si - 1][sj] == '1') {
+		grid[si - 1][sj] = grid[si][sj];
+		res += flood(grid, si - 1, sj, ul, br);
+		ul.first = min(ul.first, si - 1);
+	}
+	if (si < grid.size() - 1 && grid[si + 1][sj] == '1') {
+		grid[si + 1][sj] = grid[si][sj];
+		res += flood(grid, si + 1, sj, ul, br);
+		br.first = max(br.first, si + 1);
+	}
+	if (sj > 0 && grid[si][sj - 1] == '1') {
+		grid[si][sj - 1] = grid[si][sj];
+		res += flood(grid, si, sj - 1, ul, br);
+		ul.second = min(ul.second, sj - 1);
+	}
+	if (sj < grid[0].size() - 1 && grid[si][sj + 1] == '1') {
+		grid[si][sj + 1] = grid[si][sj];
+		res += flood(grid, si, sj + 1, ul, br);
+		br.second = max(br.second, sj + 1);
+	}
+	return res;
+}
+
 int main(int, char const *[]) {
 	LL T;
 	cin >> T;
 	while (T--) {
+		LL N, M;
+		cin >> N >> M;
+
+		VR<string> grid(N);
+		RF(i, 0, N) { cin >> grid[i]; }
+
+		LL cCC{0};
+		bool done{false};
+		RF(i, 0, N) {
+			RF(j, 0, M) {
+				if (grid[i][j] == '1') {
+					grid[i][j] = cCC++;
+					PR<LL, LL> ul{i, j}, br{ul};
+					LL cnt{flood(grid, i, j, ul, br)};
+					if ((br.first - ul.first + 1) * (br.second - ul.second + 1) != cnt) {
+						cout << "NO\n";
+						done = true;
+						break;
+					}
+				}
+			}
+			if (done) {
+				break;
+			}
+		}
+		if (!done) {
+			cout << "YES\n";
+		}
 	}
 
 	return 0;

@@ -19,7 +19,7 @@
 			"presentation": { "clear": true, "reveal": "silent" },
 
 			"command": "cp",
-			"args": ["template.cpp", "${fileDirname}/${input:new-name}.cpp"]
+			"args": ["template.cpp", "${fileDirname}${pathSeparator}${input:new-name}.cpp"]
 		},
 		{
 			/* Build the open file in debug mode. */

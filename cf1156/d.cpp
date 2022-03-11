@@ -1,17 +1,13 @@
 // C++ template for coding competitions designed for C++11 support.
 
-// GCC-specific optimizations.
-#pragma GCC target("avx2", "bmi", "bmi2", "popcnt", "lzcnt")
-#pragma GCC optimize("Ofast", "unroll-loops")
-
 // Disable security/deprecation warnings on MSVC++ for freopen.
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#if defined(__APPLE__) || defined(__MACH__)
-#define RAIN_PLATFORM_MACOS
-#endif
+// GCC-specific optimizations.
+#pragma GCC target("avx2", "bmi", "bmi2", "popcnt", "lzcnt")
+#pragma GCC optimize("Ofast", "unroll-loops")
 
 // Unfortunately MSVC does not support bits/stc++.h.
 #include <algorithm>
@@ -55,18 +51,22 @@
 #include <utility>
 #include <vector>
 
+// User-defined literals.
+constexpr std::size_t operator"" _zu(unsigned long long value) {
+	return static_cast<std::size_t>(value);
+}
+std::regex operator"" _re(char const *value, std::size_t) {
+	return std::regex(value);
+}
+
 // "Fast" I/O setup and utilities.
 class IO {
 	public:
 	IO() {
-		// On local MacOS, due to a bug in VSCode’s implementation of LLDB
-		// attachment and the difficulty of codesigning GDB, redirect stdio
-		// manually.
-#ifndef ONLINEJUDGE
-#ifdef RAIN_PLATFORM_MACOS
-		std::freopen("../build/i.default.txt", "r", stdin);
-		std::freopen("../build/o.default.txt", "w", stdout);
-#endif
+		// Redirect I/O to/from files if running locally.
+#ifndef ONLINE_JUDGE
+		std::freopen("in.txt", "r", stdin);
+		std::freopen("out.txt", "w", stdout);
 #endif
 
 		// Untie C I/O from C++ I/O. Do not intersperse printf/scanf with cin/cout.
@@ -100,14 +100,6 @@ class WallTimeGuard {
 #ifndef ONLINE_JUDGE
 WallTimeGuard wallTimeGuard;
 #endif
-
-// User-defined literals.
-inline constexpr std::size_t operator"" _zu(unsigned long long value) {
-	return static_cast<std::size_t>(value);
-}
-inline std::regex operator"" _re(char const *value, std::size_t) {
-	return std::regex(value);
-}
 
 // Most significant 1-bit for unsigned integral types of at most long long in
 // size. Undefined result if x = 0.
@@ -782,11 +774,51 @@ using namespace std;
 
 /* ---------------------------- End of template. ---------------------------- */
 
-int main(int, char const *[]) {
-	LL T;
-	cin >> T;
-	while (T--) {
+void flood(VR<unordered_set<LL>> &edges, VR<LL> &labels, LL cur, LL par) {
+	for (auto neighbor : edges[cur]) {
+		if (neighbor == par) {
+			continue;
+		}
+		labels[neighbor] = labels[cur];
+		flood(edges, labels, neighbor, cur);
 	}
+}
+
+int main(int, char const *[]) {
+	LL N;
+	cin >> N;
+
+	VR<unordered_set<LL>> whites(N), blacks(N);
+	LL j, k, l;
+	RF(i, 0, N - 1) {
+		cin >> j >> k >> l;
+		auto &edges = l == 0 ? whites : blacks;
+		edges[j - 1].insert(k - 1);
+		edges[k - 1].insert(j - 1);
+	}
+
+	VR<LL> wlab(N, -1), blab(N, -1);
+	LL cwlab{0}, cblab{0};
+	RF(i, 0, N) {
+		if (wlab[i] == -1) {
+			wlab[i] = cwlab++;
+			flood(whites, wlab, i, -1);
+		}
+		if (blab[i] == -1) {
+			blab[i] = cblab++;
+			flood(blacks, blab, i, -1);
+		}
+	}
+
+	VR<LL> blsz(cblab, 0);
+	RF(i, 0, N) { blsz[blab[i]]++; }
+
+	VR<LL> wlsum(cwlab, 0);
+	RF(i, 0, N) { wlsum[wlab[i]] += blsz[blab[i]]; }
+
+	LL ans{-N};
+	RF(i, 0, N) { ans += wlsum[wlab[i]]; }
+	cout << ans;
 
 	return 0;
 }
