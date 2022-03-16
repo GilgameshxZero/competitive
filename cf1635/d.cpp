@@ -1,13 +1,17 @@
 // C++ template for coding competitions designed for C++11 support.
 
+// GCC-specific optimizations.
+#pragma GCC target("avx2", "bmi", "bmi2", "popcnt", "lzcnt")
+#pragma GCC optimize("Ofast", "unroll-loops")
+
 // Disable security/deprecation warnings on MSVC++ for freopen.
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-// GCC-specific optimizations.
-#pragma GCC target("avx2", "bmi", "bmi2", "popcnt", "lzcnt")
-#pragma GCC optimize("Ofast", "unroll-loops")
+#if defined(__APPLE__) || defined(__MACH__)
+#define RAIN_PLATFORM_MACOS
+#endif
 
 // Unfortunately MSVC does not support bits/stc++.h.
 #include <algorithm>
@@ -51,22 +55,18 @@
 #include <utility>
 #include <vector>
 
-// User-defined literals.
-constexpr std::size_t operator"" _zu(unsigned long long value) {
-	return static_cast<std::size_t>(value);
-}
-std::regex operator"" _re(char const *value, std::size_t) {
-	return std::regex(value);
-}
-
 // "Fast" I/O setup and utilities.
 class IO {
 	public:
 	IO() {
-		// Redirect I/O to/from files if running locally.
-#ifndef ONLINE_JUDGE
-		std::freopen("in.txt", "r", stdin);
-		std::freopen("out.txt", "w", stdout);
+		// On local MacOS, due to a bug in VSCode’s implementation of LLDB
+		// attachment and the difficulty of codesigning GDB, redirect stdio
+		// manually.
+#ifndef ONLINEJUDGE
+#ifdef RAIN_PLATFORM_MACOS
+		std::freopen("../build/i.default.txt", "r", stdin);
+		std::freopen("../build/o.default.txt", "w", stdout);
+#endif
 #endif
 
 		// Untie C I/O from C++ I/O. Do not intersperse printf/scanf with cin/cout.
@@ -100,6 +100,14 @@ class WallTimeGuard {
 #ifndef ONLINE_JUDGE
 WallTimeGuard wallTimeGuard;
 #endif
+
+// User-defined literals.
+inline constexpr std::size_t operator"" _zu(unsigned long long value) {
+	return static_cast<std::size_t>(value);
+}
+inline std::regex operator"" _re(char const *value, std::size_t) {
+	return std::regex(value);
+}
 
 // Most significant 1-bit for unsigned integral types of at most long long in
 // size. Undefined result if x = 0.
@@ -642,12 +650,13 @@ class ModRing {
 
 	// Add primeModulus first to wrap back around in the case of "negative"
 	// unsigned Integer.
-	ModRing(Integer value = 0) : value((primeModulus + value) % primeModulus) {}
+	ModRing(Integer const value = 0)
+			: value((primeModulus + value) % primeModulus) {}
 
 	// O(ln N) exponentiation.
 	static ModRing<Integer, primeModulus> power(
-		ModRing<Integer, primeModulus> base,
-		Integer exponent) {
+		ModRing<Integer, primeModulus> const base,
+		Integer const exponent) {
 		if (exponent == 0) {
 			return {1};
 		}
@@ -659,15 +668,18 @@ class ModRing {
 		}
 	}
 
-	ModRing<Integer, primeModulus> operator+(Integer other) {
+	ModRing<Integer, primeModulus> operator+(Integer const other) const {
+		return *this + ModRing<Integer, primeModulus>(other);
+	}
+	ModRing<Integer, primeModulus> operator+(Integer const other) {
 		return *this + ModRing<Integer, primeModulus>(other);
 	}
 	ModRing<Integer, primeModulus> operator+(
-		ModRing<Integer, primeModulus> other) {
+		ModRing<Integer, primeModulus> const other) {
 		return {this->value + other.value};
 	}
 	ModRing<Integer, primeModulus> operator+=(
-		ModRing<Integer, primeModulus> other) {
+		ModRing<Integer, primeModulus> const other) {
 		return *this = *this + other;
 	}
 	ModRing<Integer, primeModulus> operator++() { return *this += 1; }
@@ -676,15 +688,18 @@ class ModRing {
 		*this += 1;
 		return tmp;
 	}
-	ModRing<Integer, primeModulus> operator-(Integer other) {
+	ModRing<Integer, primeModulus> operator-(Integer const other) const {
+		return *this - ModRing<Integer, primeModulus>(other);
+	}
+	ModRing<Integer, primeModulus> operator-(Integer const other) {
 		return *this - ModRing<Integer, primeModulus>(other);
 	}
 	ModRing<Integer, primeModulus> operator-(
-		ModRing<Integer, primeModulus> other) {
+		ModRing<Integer, primeModulus> const other) {
 		return {this->value - other.value};
 	}
 	ModRing<Integer, primeModulus> operator-=(
-		ModRing<Integer, primeModulus> other) {
+		ModRing<Integer, primeModulus> const other) {
 		return *this = *this - other;
 	}
 	ModRing<Integer, primeModulus> operator--() { return *this -= 1; }
@@ -693,63 +708,112 @@ class ModRing {
 		*this -= 1;
 		return tmp;
 	}
-	ModRing<Integer, primeModulus> operator*(Integer other) {
+	ModRing<Integer, primeModulus> operator*(Integer const other) const {
+		return *this * ModRing<Integer, primeModulus>(other);
+	}
+	ModRing<Integer, primeModulus> operator*(Integer const other) {
 		return *this * ModRing<Integer, primeModulus>(other);
 	}
 	ModRing<Integer, primeModulus> operator*(
-		ModRing<Integer, primeModulus> other) {
+		ModRing<Integer, primeModulus> const other) {
 		return {this->value * other.value};
 	}
 	ModRing<Integer, primeModulus> operator*=(
-		ModRing<Integer, primeModulus> other) {
+		ModRing<Integer, primeModulus> const other) {
 		return *this = *this * other;
 	}
-	ModRing<Integer, primeModulus> operator/(Integer other) {
+	ModRing<Integer, primeModulus> operator/(Integer const other) const {
+		return *this / ModRing<Integer, primeModulus>(other);
+	}
+	ModRing<Integer, primeModulus> operator/(Integer const other) {
 		return *this / ModRing<Integer, primeModulus>(other);
 	}
 	ModRing<Integer, primeModulus> operator/(
-		ModRing<Integer, primeModulus> other) {
+		ModRing<Integer, primeModulus> const other) {
 		return *this * power(other, primeModulus - 2);
 	}
 	ModRing<Integer, primeModulus> operator/=(
-		ModRing<Integer, primeModulus> other) {
+		ModRing<Integer, primeModulus> const other) {
 		return *this = *this / other;
 	}
 
-	bool operator==(Integer other) {
+	bool operator==(Integer const other) {
 		return *this == ModRing<Integer, primeModulus>(other);
 	}
-	bool operator==(ModRing<Integer, primeModulus> other) {
+	bool operator==(ModRing<Integer, primeModulus> const other) {
 		return this->value == other.value;
 	}
 };
 
 template <typename LeftInteger, typename Integer, Integer primeModulus>
 ModRing<Integer, primeModulus> operator+(
-	LeftInteger left,
-	ModRing<Integer, primeModulus> right) {
+	LeftInteger const left,
+	ModRing<Integer, primeModulus> const right) {
 	return ModRing<Integer, primeModulus>(left) + right;
 }
 
 template <typename LeftInteger, typename Integer, Integer primeModulus>
 ModRing<Integer, primeModulus> operator-(
-	LeftInteger left,
-	ModRing<Integer, primeModulus> right) {
+	LeftInteger const left,
+	ModRing<Integer, primeModulus> const right) {
 	return ModRing<Integer, primeModulus>(left) - right;
 }
 
 template <typename LeftInteger, typename Integer, Integer primeModulus>
 ModRing<Integer, primeModulus> operator*(
-	LeftInteger left,
-	ModRing<Integer, primeModulus> right) {
+	LeftInteger const left,
+	ModRing<Integer, primeModulus> const right) {
 	return ModRing<Integer, primeModulus>(left) * right;
 }
 
 template <typename LeftInteger, typename Integer, Integer primeModulus>
 ModRing<Integer, primeModulus> operator/(
-	LeftInteger left,
-	ModRing<Integer, primeModulus> right) {
+	LeftInteger const left,
+	ModRing<Integer, primeModulus> const right) {
 	return ModRing<Integer, primeModulus>(left) / right;
+}
+
+// Ease-of-use streaming operator.
+template <typename Integer, Integer primeModulus>
+inline std::ostream &operator<<(
+	std::ostream &stream,
+	ModRing<Integer, primeModulus> const right) {
+	return stream << right.value;
+}
+
+// Compute the `index`-th Fibonacci matrix in $O(\log N)$ time. Helper
+// function to fibonacciNumber. `index` must be positive.
+template <typename Integer = std::size_t>
+inline std::pair<std::pair<Integer, Integer>, std::pair<Integer, Integer>>
+fibonacciMatrix(std::size_t const index) {
+	if (index == 1) {
+		return {{1, 1}, {1, 0}};
+	}
+
+	if (index % 2 == 0) {
+		auto sub{fibonacciMatrix<Integer>(index / 2)};
+		return {
+			{sub.first.first * sub.first.first + sub.first.second * sub.second.first,
+			 sub.first.first * sub.first.second +
+				 sub.first.second * sub.second.second},
+			{sub.second.first * sub.first.first +
+				 sub.second.second * sub.second.first,
+			 sub.second.first * sub.first.second +
+				 sub.second.second * sub.second.second}};
+	} else {
+		auto sub{fibonacciMatrix<Integer>(index - 1)};
+		return {
+			{sub.first.first + sub.first.second, sub.first.first},
+			{sub.second.first + sub.second.second, sub.second.first}};
+	}
+}
+
+// Compute the `index`-th Fibonacci number in $O(\log N)$ time with repeated
+// exponentiation on the 2-by-2 matrix. `index` must be non-negative.
+// fibonacciNumber(0) is defined as 0.
+template <typename Integer = std::size_t>
+inline Integer fibonacciNumber(std::size_t const index) {
+	return fibonacciMatrix<Integer>(index + 1).second.second;
 }
 
 // Shorthand for common types.
@@ -774,25 +838,7 @@ using namespace std;
 
 /* ---------------------------- End of template. ---------------------------- */
 
-VR<ModRing<LL, 1000000007>> fib, fibs;
-
-LL cd(LL x) {
-	LL ans{0};
-	while ((1LL << ans) <= x) {
-		ans++;
-	}
-	return ans;
-}
-
 int main(int, char const *[]) {
-	fib.push_back({1});
-	fib.push_back({1});
-	while (fib.size() <= 200005) {
-		fib.push_back(fib.back() + fib[fib.size() - 2]);
-	}
-	fibs.push_back({1});
-	RF(i, 1, fib.size()) { fibs.push_back(fib[i] + fibs.back()); }
-
 	LL N, P;
 	cin >> N >> P;
 
@@ -824,12 +870,12 @@ int main(int, char const *[]) {
 
 	ModRing<LL, 1000000007> ans{0};
 	for (auto i : B) {
-		LL dig{cd(i)};
-		if (P - dig >= 0) {
-			ans += fibs[P - dig];
+		auto dig{mostSignificant1BitIdx(i) + 1};
+		if (P >= dig) {
+			ans += fibonacciNumber<ModRing<LL, 1000000007>>(P - dig + 3) - 1;
 		}
 	}
-	cout << ans.value << '\n';
+	cout << ans << '\n';
 
 	return 0;
 }

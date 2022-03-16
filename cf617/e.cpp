@@ -839,10 +839,39 @@ using namespace std;
 /* ---------------------------- End of template. ---------------------------- */
 
 int main(int, char const *[]) {
-	LL T;
-	cin >> T;
-	while (T--) {
+	LL N, M, K;
+	cin >> N >> M >> K;
+	VR<LL> A(N);
+	unordered_map<LL, LL> cpxor, txor;
+	LL cxor{0};
+	txor[0] = 1;
+	RF(i, 0, N) {
+		cin >> A[i];
+		cxor ^= A[i];
+		txor[cxor]++;
 	}
+	VR<PR<PR<LL, LL>, LL>> Q(M);
+	RF(i, 0, M) {
+		cin >> Q[i].first.second >> Q[i].first.first;
+		Q[i].second = i;
+	}
+	sort(Q.begin(), Q.end());
+	VR<LL> ans(M), sols(1, 0), active(1, 0);
+	LL j{0};
+	cxor = 0;
+	cpxor[0] = 1;
+	RF(i, 0, N) {
+		active.push_back(active.back() + txor[cxor ^ K]);
+		cxor ^= A[i];
+		cpxor[cxor]++;
+		active.back() -= cpxor[cxor ^ K];
+		sols.push_back(sols.back() + cpxor[cxor ^ K]);
+		while (j != M && Q[j].first.first - 1 == i) {
+			ans[Q[j].second] = sols.back() - sols[Q[j].first.second - 1];
+			j++;
+		}
+	}
+	RF(i, 0, M) { cout << ans[i] << '\n'; }
 
 	return 0;
 }
