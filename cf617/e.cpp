@@ -835,28 +835,53 @@ using namespace std;
 
 /* ---------------------------- End of template. ---------------------------- */
 
+AR<unsigned int, 1_zu << 21> cPX;
+AR<PR<PR<unsigned int, unsigned int>, unsigned int>, 100000> Q;
+AR<unsigned int, 100001> pX;
+AR<ZU, 100000> ans;
+unsigned int N, M, K, binSz;
+
 int main(int, char const *[]) {
-	LL N, M, K;
+	unsigned int N, M, K;
 	cin >> N >> M >> K;
-	VR<LL> A(N);
-	RF(i, 0, N) { cin >> A[i]; }
-	VR<PR<PR<LL, LL>, LL>> Q(M);
+	binSz = (unsigned int)sqrt(N);
+	RF(i, 0, N) {
+		cin >> pX[i + 1];
+		pX[i + 1] ^= pX[i];
+	}
 	RF(i, 0, M) {
 		cin >> Q[i].first.second >> Q[i].first.first;
 		Q[i].second = i;
 	}
-	sort(Q.begin(), Q.end());
-	unordered_map<LL, LL> cpxor;
-	VR<LL> ans(M), eprs(1, 0);
-	LL cxor{0};
-	cpxor[0] = 1;
-	RF(i, 0, N) {
-		cxor ^= A[i];
-		cpxor[cxor]++;
-		eprs.push_back(eprs.back() + cpxor[cxor ^ K]);
-	}
+	sort(
+		Q.begin(),
+		Q.begin() + M,
+		[&](PR<PR<LL, LL>, LL> const &i, PR<PR<LL, LL>, LL> const &j) {
+			if (i.first.second / binSz != j.first.second / binSz) {
+				return i.first.second < j.first.second;
+			}
+			return i.first.first < j.first.first;
+		});
+	LL j{Q[0].first.second}, k{j}, cPr{0};
 	RF(i, 0, M) {
-		ans[Q[i].second] = eprs[Q[i].first.first] - eprs[Q[i].first.second - 1];
+		auto &l{Q[i]};
+		for (; k <= l.first.first; k++) {
+			cPr += cPX[pX[k] ^ K];
+			cPX[pX[k]]++;
+		}
+		for (; k > l.first.first + 1; k--) {
+			cPX[pX[k - 1]]--;
+			cPr -= cPX[pX[k - 1] ^ K];
+		}
+		for (; j > l.first.second; j--) {
+			cPr += cPX[pX[j - 1] ^ K];
+			cPX[pX[j - 1]]++;
+		}
+		for (; j < l.first.second; j++) {
+			cPX[pX[j]]--;
+			cPr -= cPX[pX[j] ^ K];
+		}
+		ans[l.second] = cPr + cPX[pX[l.first.second - 1] ^ K];
 	}
 	RF(i, 0, M) { cout << ans[i] << '\n'; }
 
