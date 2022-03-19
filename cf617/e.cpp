@@ -76,9 +76,10 @@ class IO {
 		// problems!
 		std::cin.tie(nullptr);
 	}
-};
-IO io;
+} io;
 
+// If running locally, log execution time.
+#ifndef ONLINE_JUDGE
 // Automatic-duration execution-time logger conditionally defined at execution
 // start.
 class WallTimeGuard {
@@ -94,11 +95,7 @@ class WallTimeGuard {
 									 .count()
 							<< "ms. --------" << std::endl;
 	}
-};
-
-// If running locally, log execution time.
-#ifndef ONLINE_JUDGE
-WallTimeGuard wallTimeGuard;
+} wallTimeGuard;
 #endif
 
 // User-defined literals.
@@ -842,34 +839,24 @@ int main(int, char const *[]) {
 	LL N, M, K;
 	cin >> N >> M >> K;
 	VR<LL> A(N);
-	unordered_map<LL, LL> cpxor, txor;
-	LL cxor{0};
-	txor[0] = 1;
-	RF(i, 0, N) {
-		cin >> A[i];
-		cxor ^= A[i];
-		txor[cxor]++;
-	}
+	RF(i, 0, N) { cin >> A[i]; }
 	VR<PR<PR<LL, LL>, LL>> Q(M);
 	RF(i, 0, M) {
 		cin >> Q[i].first.second >> Q[i].first.first;
 		Q[i].second = i;
 	}
 	sort(Q.begin(), Q.end());
-	VR<LL> ans(M), sols(1, 0), active(1, 0);
-	LL j{0};
-	cxor = 0;
+	unordered_map<LL, LL> cpxor;
+	VR<LL> ans(M), eprs(1, 0);
+	LL cxor{0};
 	cpxor[0] = 1;
 	RF(i, 0, N) {
-		active.push_back(active.back() + txor[cxor ^ K]);
 		cxor ^= A[i];
 		cpxor[cxor]++;
-		active.back() -= cpxor[cxor ^ K];
-		sols.push_back(sols.back() + cpxor[cxor ^ K]);
-		while (j != M && Q[j].first.first - 1 == i) {
-			ans[Q[j].second] = sols.back() - sols[Q[j].first.second - 1];
-			j++;
-		}
+		eprs.push_back(eprs.back() + cpxor[cxor ^ K]);
+	}
+	RF(i, 0, M) {
+		ans[Q[i].second] = eprs[Q[i].first.first] - eprs[Q[i].first.second - 1];
 	}
 	RF(i, 0, M) { cout << ans[i] << '\n'; }
 

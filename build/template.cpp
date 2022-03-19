@@ -76,9 +76,10 @@ class IO {
 		// problems!
 		std::cin.tie(nullptr);
 	}
-};
-IO io;
+} io;
 
+// If running locally, log execution time.
+#ifndef ONLINE_JUDGE
 // Automatic-duration execution-time logger conditionally defined at execution
 // start.
 class WallTimeGuard {
@@ -94,11 +95,7 @@ class WallTimeGuard {
 									 .count()
 							<< "ms. --------" << std::endl;
 	}
-};
-
-// If running locally, log execution time.
-#ifndef ONLINE_JUDGE
-WallTimeGuard wallTimeGuard;
+} wallTimeGuard;
 #endif
 
 // User-defined literals.
