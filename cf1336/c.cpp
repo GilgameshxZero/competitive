@@ -844,12 +844,13 @@ int main(int, char const *[]) {
 	reverse(rT.begin(), rT.end());
 
 	auto pm{computeKmpPartialMatch(rT)};
+	MR ans{0};
 	vector<MR> sPms(T.length() + 1, 0);
 	sPms[0] = 1;
 	RF(i, 0, S.length()) {
 		decltype(sPms) tSPms(sPms.size(), 0);
 		RF(j, 0, sPms.size()) {
-			// append to front.
+			// Append to front.
 			ZU k{(ZU)j};
 			while (k != SIZE_MAX && rT[k] != S[i]) {
 				k = pm[k];
@@ -857,20 +858,16 @@ int main(int, char const *[]) {
 			tSPms[k + 1] += sPms[j];
 
 			// Append to back.
-			if (i >= T.length()) {
+			if (i >= T.length() || T.back() != S[i]) {
 				tSPms[j] += sPms[j];
 			} else {
 				// Check if the whole string is a match for some suffix.
-			}
-			if (
-				pm[rT.length()] == rT.length() - 1 && T.back() == S[i] &&
-				i < T.length()) {
-				tSPms[j + 1] += sPms[j];
-			} else {
+				tSPms[j] += sPms[j];
 			}
 		}
 		sPms.swap(tSPms);
+		ans += sPms.back();
 	}
-	cout << sPms.back();
+	cout << ans;
 	return 0;
 }
