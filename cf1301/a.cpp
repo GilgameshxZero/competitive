@@ -839,6 +839,16 @@ int main(int, char const *[]) {
 	LL T;
 	cin >> T;
 	while (T--) {
+		string A, B, C;
+		cin >> A >> B >> C;
+		RF(i, 0, A.size()) {
+			if (A[i] == C[i]) {
+				swap(B[i], C[i]);
+			} else {
+				swap(A[i], C[i]);
+			}
+		}
+		cout << (A == B ? "YES" : "NO") << '\n';
 	}
 
 	return 0;

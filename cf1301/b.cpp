@@ -839,6 +839,50 @@ int main(int, char const *[]) {
 	LL T;
 	cin >> T;
 	while (T--) {
+		LL N;
+		cin >> N;
+		VR<LL> A(N);
+		RF(i, 0, N) {
+			cin >> A[i];
+		}
+		LL mi{1000000000}, ma{-1}, cc{0}, adj{0};
+		RF(i, 1, N - 1) {
+			if (A[i] == -1) {
+				cc++;
+				if (A[i - 1] != -1) {
+					mi = min(mi, A[i - 1]);
+					ma = max(ma, A[i - 1]);
+				}
+				if (A[i + 1] != -1) {
+					mi = min(mi, A[i + 1]);
+					ma = max(ma, A[i + 1]);
+				}
+			}
+			if (A[i] != -1 && A[i - 1] != -1) {
+				adj = max(adj, max(A[i] - A[i - 1], A[i - 1] - A[i]));
+			}
+		}
+		if (A[N - 1] != -1 && A[N - 2] != -1) {
+			adj = max(adj, max(A[N - 1] - A[N - 2], A[N - 2] - A[N - 1]));
+		}
+		if (cc == N - 2 && A[0] == -1 && A[N - 1] == -1) {
+			cout << "0 0\n";
+			continue;
+		}
+		if (A[0] == -1) {
+			if (A[1] != -1) {
+				mi = min(mi, A[1]);
+				ma = max(ma, A[1]);
+			}
+		}
+		if (A[N - 1] == -1) {
+			if (A[N - 2] != -1) {
+				mi = min(mi, A[N - 2]);
+				ma = max(ma, A[N - 2]);
+			}
+		}
+		LL mid{(mi + ma) / 2};
+		cout << max(adj, max(mid - mi, ma - mid)) << ' ' << mid << '\n';
 	}
 
 	return 0;

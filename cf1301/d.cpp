@@ -836,9 +836,99 @@ using namespace std;
 /* ---------------------------- End of template. ---------------------------- */
 
 int main(int, char const *[]) {
-	LL T;
-	cin >> T;
-	while (T--) {
+	LL N, M, K;
+	cin >> N >> M >> K;
+
+	// if (N == 1 && M == 1) {
+	// 	cout << "NO";
+	// 	return 0;
+	// }
+
+	VR<PR<LL, string>> ans, back, real, ff;
+	RF(layer, 0, min((N + 1) / 2, (M + 1) / 2)) {
+		LL sr{N - layer * 2}, sc{M - layer * 2};
+		if (sr == 1 && sc == 1) {
+		} else if (sr == 1) {
+			ans.push_back({sc - 1, "R"});
+			back.push_back({sc - 1, "L"});
+		} else if (sc == 1) {
+			ans.push_back({sr - 1, "D"});
+			back.push_back({sr - 1, "U"});
+		} else {
+			if (sr > 2) {
+				ans.push_back({sr - 2, "DRL"});
+			}
+			ans.push_back({1, "D"});
+			back.push_back({sr - 1, "U"});
+			if (sc > 2) {
+				ans.push_back({sc - 2, "RUD"});
+			}
+			ans.push_back({1, "R"});
+			back.push_back({sc - 1, "L"});
+			if (sr > 2) {
+				ans.push_back({sr - 2, "ULR"});
+			}
+			ans.push_back({1, "U"});
+			back.push_back({sr - 1, "D"});
+			if (sc == 2) {
+				ans.push_back({1, "LR"});
+			} else if (sc == 3) {
+				ans.push_back({1, "L"});
+				ans.push_back({1, "DULR"});
+				back.push_back({1, "R"});
+			} else {
+				ans.push_back({sc - 3, "LDU"});
+				ans.push_back({1, "LLRD"});
+				back.push_back({sc - 2, "R"});
+				back.push_back({1, "U"});
+			}
+		}
+	}
+	reverse(back.begin(), back.end());
+	RF(i, 0, back.size()) {
+		ans.push_back(back[i]);
+	}
+	// RF(i, 0, ans.size()) {
+	// 	cout << ans[i].first << ' ' << ans[i].second << '\n';
+	// }
+	// return 0;
+	if (K > 4 * N * M - 2 * (N + M)) {
+		cout << "NO";
+		return 0;
+	}
+	cout << "YES\n";
+	LL sum{0};
+	RF(i, 0, ans.size()) {
+		sum += ans[i].first * ans[i].second.size();
+		if (sum <= K) {
+			real.push_back(ans[i]);
+			if (sum == K) {
+				break;
+			}
+		} else {
+			sum -= ans[i].first * ans[i].second.size();
+			LL rem{(K - sum) / (LL)ans[i].second.size()};
+			if (rem > 0) {
+				real.push_back({rem, ans[i].second});
+			}
+			real.push_back(
+				{1, ans[i].second.substr(0, K - sum - rem * ans[i].second.size())});
+			break;
+		}
+	}
+
+	// Compress.
+	ff.push_back(real.front());
+	RF(i, 1, real.size()) {
+		if (real[i].second == real[i - 1].second) {
+			ff.back().first += real[i].first;
+		} else {
+			ff.push_back(real[i]);
+		}
+	}
+	cout << ff.size() << '\n';
+	RF(i, 0, ff.size()) {
+		cout << ff[i].first << ' ' << ff[i].second << '\n';
 	}
 
 	return 0;

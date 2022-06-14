@@ -839,6 +839,17 @@ int main(int, char const *[]) {
 	LL T;
 	cin >> T;
 	while (T--) {
+		LL N, M;
+		cin >> N >> M;
+		if (M == 0) {
+			cout << "0\n";
+			continue;
+		}
+		LL bt{(N - M) / (M + 1)};
+		ULL ans{0};
+		ans += M * (bt + 1) * (bt + 2) / 2;
+		ans += (N + 1) * (N + 1 - bt - 2) - N * (N + 1) / 2 + (bt + 1) * (bt + 2) / 2;
+		cout << ans << '\n';
 	}
 
 	return 0;
