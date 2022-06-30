@@ -110,6 +110,11 @@ inline std::regex operator"" _re(char const *value, std::size_t) {
 // size. Undefined result if x = 0.
 template <typename Integer>
 inline std::size_t mostSignificant1BitIdx(Integer const x) {
+#ifdef __has_builtin
+#if __has_builtin(__builtin_clzll)
+	return 8 * sizeof(unsigned long long) - __builtin_clzll(x) - 1;
+#endif
+#endif
 	for (std::size_t bit = 8 * sizeof(Integer) - 1;
 			 bit != std::numeric_limits<std::size_t>::max();
 			 bit--) {
