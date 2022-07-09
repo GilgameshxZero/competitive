@@ -841,33 +841,33 @@ int main(int, char const *[]) {
 	while (T--) {
 		LL N;
 		cin >> N;
-		VR<LL> A(N), B(N + 1);
+		VR<PR<PR<LL, LL>, LL>> iv(N);
 		RF(i, 0, N) {
-			cin >> A[i];
-			B[A[i]] = i;
-		}
-		LL ans{0}, mid{1}, right;
-		for (LL i{0}; i < N;) {
-			right = mid + 1;
-			if (A[mid] < A[i]) {
-				while (right < N && A[right] < A[i]) {
-					if (A[right] < A[mid]) {
-						mid = right;
-					}
-					right++;
-				}
+			LL B;
+			cin >> B;
+			if (B == 0) {
+				iv[i] = {{N, i + 2}, i};
 			} else {
-				while (right < N && A[right] > A[i]) {
-					if (A[right] > A[mid]) {
-						mid = right;
-					}
-					right++;
-				}
+				iv[i] = {{(i + 1) / B, (i + 1) / (B + 1) + 1}, i};
 			}
-			ans++;
-			i = mid;
-			mid = right;
 		}
+		sort(iv.begin(), iv.end());
+		DisjointSetUnion dsu(N + 2);
+		VR<LL> stop(N + 2);
+		RF(i, 0, N + 2) {
+			stop[i] = i;
+		}
+		VR<LL> vp(N);
+		RF(i, 0, N) {
+			auto j = dsu.find(iv[i].first.second);
+			vp[iv[i].second] = stop[j];
+			dsu.join(stop[j], stop[j] + 1);
+			stop[dsu.find(j)] = stop[j] + 1;
+		}
+		RF(i, 0, N) {
+			cout << vp[i] << ' ';
+		}
+		cout << '\n';
 	}
 
 	return 0;

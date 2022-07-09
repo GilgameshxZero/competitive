@@ -841,33 +841,20 @@ int main(int, char const *[]) {
 	while (T--) {
 		LL N;
 		cin >> N;
-		VR<LL> A(N), B(N + 1);
-		RF(i, 0, N) {
-			cin >> A[i];
-			B[A[i]] = i;
-		}
-		LL ans{0}, mid{1}, right;
-		for (LL i{0}; i < N;) {
-			right = mid + 1;
-			if (A[mid] < A[i]) {
-				while (right < N && A[right] < A[i]) {
-					if (A[right] < A[mid]) {
-						mid = right;
-					}
-					right++;
-				}
-			} else {
-				while (right < N && A[right] > A[i]) {
-					if (A[right] > A[mid]) {
-						mid = right;
-					}
-					right++;
+		cout << 2 << '\n';
+
+		unordered_set<LL> done;
+		RF(i, 1, N + 1) {
+			if (done.find(i) == done.end()) {
+				LL j{i};
+				while (j <= N) {
+					done.insert(j);
+					cout << j << ' ';
+					j *= 2;
 				}
 			}
-			ans++;
-			i = mid;
-			mid = right;
 		}
+		cout << '\n';
 	}
 
 	return 0;

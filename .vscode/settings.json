@@ -11,10 +11,15 @@
 		"settings.json.DEFAULT": "jsonc"
 	},
 
+	"markdown.styles": ["http://gilgamesh.cc/snapshot.css"],
+
 	"C_Cpp.default.cppStandard": "c++17",
 
 	"[cpp]": {
 		"editor.defaultFormatter": "ms-vscode.cpptools",
 		"editor.wordWrap": "on"
+	},
+	"[markdown]": {
+		"editor.fontFamily": "'EB Garamond', Georgia, serif"
 	}
 }

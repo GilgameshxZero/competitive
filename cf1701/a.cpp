@@ -839,34 +839,18 @@ int main(int, char const *[]) {
 	LL T;
 	cin >> T;
 	while (T--) {
-		LL N;
-		cin >> N;
-		VR<LL> A(N), B(N + 1);
-		RF(i, 0, N) {
-			cin >> A[i];
-			B[A[i]] = i;
+		LL c{0};
+		RF(i, 0, 4) {
+			LL t;
+			cin >> t;
+			c += t;
 		}
-		LL ans{0}, mid{1}, right;
-		for (LL i{0}; i < N;) {
-			right = mid + 1;
-			if (A[mid] < A[i]) {
-				while (right < N && A[right] < A[i]) {
-					if (A[right] < A[mid]) {
-						mid = right;
-					}
-					right++;
-				}
-			} else {
-				while (right < N && A[right] > A[i]) {
-					if (A[right] > A[mid]) {
-						mid = right;
-					}
-					right++;
-				}
-			}
-			ans++;
-			i = mid;
-			mid = right;
+		if (c == 0) {
+			cout << "0\n";
+		} else if (c == 4) {
+			cout << "2\n";
+		} else {
+			cout << "1\n";
 		}
 	}
 
